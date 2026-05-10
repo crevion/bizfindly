@@ -88,6 +88,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "BizFindly — AI-powered local discovery" },
+      { name: "description", content: "Vibe Finder is an AI-powered app for discovering local restaurants, cafes, and resorts in Bangladesh." },
+      { property: "og:description", content: "Vibe Finder is an AI-powered app for discovering local restaurants, cafes, and resorts in Bangladesh." },
+      { name: "twitter:description", content: "Vibe Finder is an AI-powered app for discovering local restaurants, cafes, and resorts in Bangladesh." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/eb85f18b-a317-4a40-bce4-b6fa3e95e033/id-preview-0000c2b0--e7246adb-2971-43fe-8346-688bc712957e.lovable.app-1778375136306.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/eb85f18b-a317-4a40-bce4-b6fa3e95e033/id-preview-0000c2b0--e7246adb-2971-43fe-8346-688bc712957e.lovable.app-1778375136306.png" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
