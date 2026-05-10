@@ -68,7 +68,8 @@ const reviews = [
 ];
 
 function PlacePage() {
-  const { place } = Route.useLoaderData();
+  const { slug } = Route.useParams();
+  const place = findPlace(slug)!;
   const similar = places.filter((p) => p.id !== place.id && p.category === place.category).slice(0, 4);
 
   return (
