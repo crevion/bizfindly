@@ -119,10 +119,18 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouter().state.location.pathname;
+  const isAi = pathname.startsWith("/ai");
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <div className="flex min-h-screen flex-col">
+        {!isAi && <Header />}
+        <main className="flex-1 pb-24 md:pb-0">
+          <Outlet />
+        </main>
+        {!isAi && <MobileNav />}
+      </div>
     </QueryClientProvider>
   );
 }
