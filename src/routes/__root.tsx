@@ -129,6 +129,7 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouter().state.location.pathname;
   const isAi = pathname.startsWith("/ai");
+  const isFullscreen = pathname.startsWith("/list-business");
 
   return (
     <QueryClientProvider client={queryClient}>
