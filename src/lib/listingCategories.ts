@@ -73,6 +73,8 @@ export const CATEGORIES: Record<ListingCategory, CategoryConfig> = {
     nameLabel: "Resort name",
     pricingLabel: "Starting room price (per night)",
     pricingPlaceholder: "৳ 6,500",
+    priceMinPlaceholder: "Starting from ৳3500",
+    priceMaxPlaceholder: "Up to ৳25000",
     facilities: [
       { key: "pool", label: "Swimming pool" },
       { key: "villa", label: "Private villa" },
