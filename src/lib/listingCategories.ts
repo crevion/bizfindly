@@ -155,6 +155,8 @@ export interface ListingDraft {
   phone: string;
   hours: string;
   pricing: string;
+  priceMin: string;
+  priceMax: string;
   cuisine?: string;
   rooms?: string;
   checkIn?: string;
