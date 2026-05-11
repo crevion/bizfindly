@@ -447,6 +447,34 @@ function Field({
 const inputCls =
   "w-full rounded-2xl border border-border bg-surface px-4 py-3.5 text-base text-foreground placeholder:text-muted-foreground/70 transition focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30";
 
+function PriceInput({
+  value,
+  onChange,
+  placeholder,
+  ariaLabel,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  ariaLabel: string;
+}) {
+  return (
+    <div className="relative">
+      <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-base font-semibold text-muted-foreground">
+        ৳
+      </span>
+      <input
+        aria-label={ariaLabel}
+        inputMode="numeric"
+        className={cn(inputCls, "pl-9")}
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value.replace(/[^\d]/g, ""))}
+      />
+    </div>
+  );
+}
+
 function BasicsStep({
   cfg,
   draft,
