@@ -15,6 +15,8 @@ export interface CategoryConfig {
   imageGroups: { key: string; label: string }[];
   pricingLabel: string;
   pricingPlaceholder: string;
+  priceMinPlaceholder: string;
+  priceMaxPlaceholder: string;
   nameLabel: string;
 }
 
