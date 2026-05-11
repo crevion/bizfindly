@@ -548,14 +548,28 @@ function DetailsStep({
         sub="Set guest expectations up front."
       />
       <div className="space-y-5">
-        <Field label={cfg.pricingLabel}>
-          <input
-            className={inputCls}
-            placeholder={cfg.pricingPlaceholder}
-            value={draft.pricing}
-            onChange={(e) => update({ pricing: e.target.value })}
-          />
-        </Field>
+        <div>
+          <div className="mb-1.5 text-sm font-semibold text-foreground">
+            {cfg.pricingLabel} <span className="text-muted-foreground">· price range</span>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <PriceInput
+              placeholder={cfg.priceMinPlaceholder}
+              value={draft.priceMin}
+              onChange={(v) => update({ priceMin: v, pricing: `৳${v}${draft.priceMax ? ` – ৳${draft.priceMax}` : ""}` })}
+              ariaLabel="Starting price"
+            />
+            <PriceInput
+              placeholder={cfg.priceMaxPlaceholder}
+              value={draft.priceMax}
+              onChange={(v) => update({ priceMax: v, pricing: `৳${draft.priceMin || "?"} – ৳${v}` })}
+              ariaLabel="Maximum price"
+            />
+          </div>
+          <div className="mt-1.5 text-xs text-muted-foreground">
+            Helps with smart filtering and AI recommendations.
+          </div>
+        </div>
 
         {cfg.id === "resort" ? (
           <>
