@@ -110,6 +110,8 @@ export const CATEGORIES: Record<ListingCategory, CategoryConfig> = {
     nameLabel: "Gym name",
     pricingLabel: "Monthly membership price",
     pricingPlaceholder: "৳ 2,500",
+    priceMinPlaceholder: "Starting from ৳1500",
+    priceMaxPlaceholder: "Up to ৳6000",
     facilities: [
       { key: "trainer", label: "Trainer available" },
       { key: "femaleTrainer", label: "Female trainer" },
