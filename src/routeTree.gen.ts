@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SavedRouteImport } from './routes/saved'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as ListBusinessRouteImport } from './routes/list-business'
 import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as AiRouteImport } from './routes/ai'
 import { Route as IndexRouteImport } from './routes/index'
@@ -24,6 +25,11 @@ const SavedRoute = SavedRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ListBusinessRoute = ListBusinessRouteImport.update({
+  id: '/list-business',
+  path: '/list-business',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DiscoverRoute = DiscoverRouteImport.update({
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
   '/discover': typeof DiscoverRoute
+  '/list-business': typeof ListBusinessRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/place/$slug': typeof PlaceSlugRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
   '/discover': typeof DiscoverRoute
+  '/list-business': typeof ListBusinessRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/place/$slug': typeof PlaceSlugRoute
@@ -68,20 +76,36 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
   '/discover': typeof DiscoverRoute
+  '/list-business': typeof ListBusinessRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/place/$slug': typeof PlaceSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/ai' | '/discover' | '/profile' | '/saved' | '/place/$slug'
+  fullPaths:
+    | '/'
+    | '/ai'
+    | '/discover'
+    | '/list-business'
+    | '/profile'
+    | '/saved'
+    | '/place/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/ai' | '/discover' | '/profile' | '/saved' | '/place/$slug'
+  to:
+    | '/'
+    | '/ai'
+    | '/discover'
+    | '/list-business'
+    | '/profile'
+    | '/saved'
+    | '/place/$slug'
   id:
     | '__root__'
     | '/'
     | '/ai'
     | '/discover'
+    | '/list-business'
     | '/profile'
     | '/saved'
     | '/place/$slug'
@@ -91,6 +115,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AiRoute: typeof AiRoute
   DiscoverRoute: typeof DiscoverRoute
+  ListBusinessRoute: typeof ListBusinessRoute
   ProfileRoute: typeof ProfileRoute
   SavedRoute: typeof SavedRoute
   PlaceSlugRoute: typeof PlaceSlugRoute
@@ -110,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/list-business': {
+      id: '/list-business'
+      path: '/list-business'
+      fullPath: '/list-business'
+      preLoaderRoute: typeof ListBusinessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/discover': {
@@ -147,6 +179,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiRoute: AiRoute,
   DiscoverRoute: DiscoverRoute,
+  ListBusinessRoute: ListBusinessRoute,
   ProfileRoute: ProfileRoute,
   SavedRoute: SavedRoute,
   PlaceSlugRoute: PlaceSlugRoute,
@@ -154,3 +187,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
