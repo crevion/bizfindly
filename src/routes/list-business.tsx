@@ -3,10 +3,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
-  Camera,
   Check,
   ChevronRight,
-  Image as ImageIcon,
   MapPin,
   Phone,
   Sparkles,
