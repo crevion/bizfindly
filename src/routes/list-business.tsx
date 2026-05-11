@@ -70,6 +70,9 @@ function ListBusiness() {
   const [draft, setDraft] = useState<ListingDraft>(emptyDraft);
   const [stepIdx, setStepIdx] = useState(0);
   const [hydrated, setHydrated] = useState(false);
+  const [publishState, setPublishState] = useState<"idle" | "publishing" | "done" | "error">("idle");
+  const [publishedId, setPublishedId] = useState<string | null>(null);
+  const [publishError, setPublishError] = useState<string | null>(null);
 
   useEffect(() => {
     const d = loadDraft();
@@ -79,11 +82,12 @@ function ListBusiness() {
   }, []);
 
   useEffect(() => {
-    if (hydrated) saveDraft(draft);
-  }, [draft, hydrated]);
+    if (hydrated && publishState === "idle") saveDraft(draft);
+  }, [draft, hydrated, publishState]);
 
   const cfg = draft.category ? CATEGORIES[draft.category] : null;
-  const step = STEPS[stepIdx];
+  const isDone = publishState === "done";
+  const step = STEPS[stepIdx] ?? STEPS[STEPS.length - 1];
   const progress = ((stepIdx + 1) / STEPS.length) * 100;
 
   const update = (patch: Partial<ListingDraft>) =>
@@ -102,7 +106,11 @@ function ListBusiness() {
       case "basics":
         return draft.name.trim().length > 1 && draft.location.trim().length > 1;
       case "details":
-        return draft.pricing.trim().length > 0 && draft.hours.trim().length > 0;
+        return (
+          draft.priceMin.trim().length > 0 &&
+          draft.priceMax.trim().length > 0 &&
+          draft.hours.trim().length > 0
+        );
       case "facilities":
       case "tags":
         return true;
@@ -115,10 +123,26 @@ function ListBusiness() {
     }
   }, [step.id, draft]);
 
-  const onPublish = () => {
-    publishListing(draft);
-    setStepIdx(STEPS.length); // done
+  const onPublish = async () => {
+    if (publishState === "publishing") return;
+    setPublishState("publishing");
+    setPublishError(null);
+    try {
+      // Simulate async publish for smooth transition
+      await new Promise((r) => setTimeout(r, 900));
+      const final = publishListing(draft);
+      setPublishedId(final.id ?? null);
+      setPublishState("done");
+    } catch (e) {
+      console.error("publish failed", e);
+      setPublishError("Something went wrong while submitting your listing. Please try again.");
+      setPublishState("error");
+    }
   };
+
+  if (isDone && cfg) {
+    return <SuccessScreen draft={draft} cfg={cfg} listingId={publishedId} />;
+  }
 
   return (
     <div className="fixed inset-0 z-[60] flex flex-col bg-background">
@@ -146,24 +170,22 @@ function ListBusiness() {
       </header>
 
       {/* Progress */}
-      {stepIdx < STEPS.length && (
-        <div className="px-4 pt-3 md:px-8">
-          <div className="mx-auto max-w-2xl">
-            <div className="mb-2 flex items-center justify-between text-xs font-medium text-muted-foreground">
-              <span>
-                Step {stepIdx + 1} of {STEPS.length} · {step.label}
-              </span>
-              <span>Autosaved</span>
-            </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full gradient-brand transition-all duration-500"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
+      <div className="px-4 pt-3 md:px-8">
+        <div className="mx-auto max-w-2xl">
+          <div className="mb-2 flex items-center justify-between text-xs font-medium text-muted-foreground">
+            <span>
+              Step {stepIdx + 1} of {STEPS.length} · {step.label}
+            </span>
+            <span>Autosaved</span>
+          </div>
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full gradient-brand transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            />
           </div>
         </div>
-      )}
+      </div>
 
       {/* Body */}
       <div className="flex-1 overflow-y-auto px-4 py-8 md:px-8 md:py-12">
@@ -198,44 +220,130 @@ function ListBusiness() {
           {step.id === "preview" && cfg && (
             <PreviewStep cfg={cfg} draft={draft} />
           )}
-          {stepIdx >= STEPS.length && <DoneStep />}
+
+          {publishError && (
+            <div className="mt-6 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+              {publishError}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Footer actions */}
-      {stepIdx < STEPS.length && (
-        <footer className="border-t border-border/60 bg-background/95 px-4 py-4 backdrop-blur md:px-8">
-          <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
+      <footer className="border-t border-border/60 bg-background/95 px-4 py-4 backdrop-blur md:px-8">
+        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
+          <button
+            onClick={back}
+            disabled={publishState === "publishing"}
+            className="rounded-full px-5 py-3 text-sm font-semibold text-muted-foreground hover:text-foreground disabled:opacity-50"
+          >
+            Back
+          </button>
+          {step.id === "preview" ? (
             <button
-              onClick={back}
-              className="rounded-full px-5 py-3 text-sm font-semibold text-muted-foreground hover:text-foreground"
+              onClick={onPublish}
+              disabled={publishState === "publishing"}
+              className="inline-flex items-center gap-2 rounded-full gradient-brand px-7 py-3.5 text-sm font-semibold text-brand-foreground shadow-glow transition hover:opacity-95 disabled:opacity-80"
             >
-              Back
+              {publishState === "publishing" ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand-foreground/40 border-t-brand-foreground" />
+                  Publishing your business…
+                </>
+              ) : (
+                <>
+                  Publish listing <Check className="h-4 w-4" />
+                </>
+              )}
             </button>
-            {step.id === "preview" ? (
-              <button
-                onClick={onPublish}
-                className="inline-flex items-center gap-2 rounded-full gradient-brand px-7 py-3.5 text-sm font-semibold text-brand-foreground shadow-glow transition hover:opacity-95"
-              >
-                Publish listing <Check className="h-4 w-4" />
-              </button>
-            ) : (
-              <button
-                onClick={next}
-                disabled={!canContinue}
-                className={cn(
-                  "inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold transition",
-                  canContinue
-                    ? "gradient-brand text-brand-foreground shadow-glow hover:opacity-95"
-                    : "bg-muted text-muted-foreground",
-                )}
-              >
-                Continue <ArrowRight className="h-4 w-4" />
-              </button>
-            )}
+          ) : (
+            <button
+              onClick={next}
+              disabled={!canContinue}
+              className={cn(
+                "inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold transition",
+                canContinue
+                  ? "gradient-brand text-brand-foreground shadow-glow hover:opacity-95"
+                  : "bg-muted text-muted-foreground",
+              )}
+            >
+              Continue <ArrowRight className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+function SuccessScreen({
+  draft,
+  cfg,
+  listingId,
+}: {
+  draft: ListingDraft;
+  cfg: CategoryConfig;
+  listingId: string | null;
+}) {
+  const hero = Object.values(draft.images).flat()[0] || cfg.image;
+  return (
+    <div className="fixed inset-0 z-[60] flex flex-col overflow-y-auto bg-background">
+      <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center px-4 py-12 text-center">
+        <div className="relative mb-8">
+          <div className="absolute inset-0 animate-ping rounded-full bg-emerald-500/30" />
+          <div className="relative mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-[0_20px_60px_-15px_rgba(16,185,129,0.6)]">
+            <Check className="h-12 w-12 text-white" strokeWidth={3} />
           </div>
-        </footer>
-      )}
+        </div>
+
+        <h1 className="font-display text-3xl font-bold tracking-tight md:text-4xl">
+          Your business has been submitted successfully.
+        </h1>
+        <p className="mt-3 max-w-md text-sm text-muted-foreground md:text-base">
+          Our team will review your listing shortly. You'll get a notification the moment it goes live.
+        </p>
+
+        {/* Thumbnail preview */}
+        <div className="mt-8 w-full overflow-hidden rounded-3xl border border-border bg-card shadow-card">
+          <div className="relative h-40 w-full">
+            <img src={hero} alt={draft.name} className="h-full w-full object-cover" />
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-left text-white">
+              <div className="text-[10px] font-semibold uppercase tracking-wider opacity-90">
+                {cfg.label} · Pending review
+              </div>
+              <div className="font-display text-lg font-bold leading-tight">
+                {draft.name || "Your business"}
+              </div>
+              <div className="flex items-center gap-1 text-xs opacity-90">
+                <MapPin className="h-3 w-3" /> {draft.location || "—"}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 flex w-full flex-col items-stretch gap-3 sm:flex-row sm:justify-center">
+          <Link
+            to="/dashboard"
+            className="inline-flex items-center justify-center gap-2 rounded-full gradient-brand px-6 py-3.5 text-sm font-semibold text-brand-foreground shadow-glow"
+          >
+            View Dashboard <ChevronRight className="h-4 w-4" />
+          </Link>
+          {listingId && (
+            <Link
+              to="/list-business"
+              className="inline-flex items-center justify-center rounded-full border border-border bg-surface px-6 py-3.5 text-sm font-semibold"
+            >
+              Edit Listing
+            </Link>
+          )}
+          <Link
+            to="/"
+            className="inline-flex items-center justify-center rounded-full px-6 py-3.5 text-sm font-semibold text-muted-foreground hover:text-foreground"
+          >
+            Go Home
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
