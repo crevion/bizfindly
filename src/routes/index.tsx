@@ -256,7 +256,7 @@ function Home() {
               Claim your listing, reach thousands of nearby customers and grow with insights.
             </p>
             <Link
-              to="/discover"
+              to="/list-business"
               className="mt-6 inline-flex items-center gap-1 rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-brand-foreground"
             >
               List your business <ArrowRight className="h-4 w-4" />

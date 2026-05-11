@@ -11,7 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SavedRouteImport } from './routes/saved'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as ListBusinessRouteImport } from './routes/list-business'
 import { Route as DiscoverRouteImport } from './routes/discover'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AiRouteImport } from './routes/ai'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlaceSlugRouteImport } from './routes/place.$slug'
@@ -26,9 +28,19 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ListBusinessRoute = ListBusinessRouteImport.update({
+  id: '/list-business',
+  path: '/list-business',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DiscoverRoute = DiscoverRouteImport.update({
   id: '/discover',
   path: '/discover',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AiRoute = AiRouteImport.update({
@@ -50,7 +62,9 @@ const PlaceSlugRoute = PlaceSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
+  '/dashboard': typeof DashboardRoute
   '/discover': typeof DiscoverRoute
+  '/list-business': typeof ListBusinessRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/place/$slug': typeof PlaceSlugRoute
@@ -58,7 +72,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
+  '/dashboard': typeof DashboardRoute
   '/discover': typeof DiscoverRoute
+  '/list-business': typeof ListBusinessRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/place/$slug': typeof PlaceSlugRoute
@@ -67,21 +83,41 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
+  '/dashboard': typeof DashboardRoute
   '/discover': typeof DiscoverRoute
+  '/list-business': typeof ListBusinessRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/place/$slug': typeof PlaceSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/ai' | '/discover' | '/profile' | '/saved' | '/place/$slug'
+  fullPaths:
+    | '/'
+    | '/ai'
+    | '/dashboard'
+    | '/discover'
+    | '/list-business'
+    | '/profile'
+    | '/saved'
+    | '/place/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/ai' | '/discover' | '/profile' | '/saved' | '/place/$slug'
+  to:
+    | '/'
+    | '/ai'
+    | '/dashboard'
+    | '/discover'
+    | '/list-business'
+    | '/profile'
+    | '/saved'
+    | '/place/$slug'
   id:
     | '__root__'
     | '/'
     | '/ai'
+    | '/dashboard'
     | '/discover'
+    | '/list-business'
     | '/profile'
     | '/saved'
     | '/place/$slug'
@@ -90,7 +126,9 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AiRoute: typeof AiRoute
+  DashboardRoute: typeof DashboardRoute
   DiscoverRoute: typeof DiscoverRoute
+  ListBusinessRoute: typeof ListBusinessRoute
   ProfileRoute: typeof ProfileRoute
   SavedRoute: typeof SavedRoute
   PlaceSlugRoute: typeof PlaceSlugRoute
@@ -112,11 +150,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/list-business': {
+      id: '/list-business'
+      path: '/list-business'
+      fullPath: '/list-business'
+      preLoaderRoute: typeof ListBusinessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/discover': {
       id: '/discover'
       path: '/discover'
       fullPath: '/discover'
       preLoaderRoute: typeof DiscoverRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ai': {
@@ -146,7 +198,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiRoute: AiRoute,
+  DashboardRoute: DashboardRoute,
   DiscoverRoute: DiscoverRoute,
+  ListBusinessRoute: ListBusinessRoute,
   ProfileRoute: ProfileRoute,
   SavedRoute: SavedRoute,
   PlaceSlugRoute: PlaceSlugRoute,

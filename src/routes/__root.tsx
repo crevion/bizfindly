@@ -129,15 +129,16 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouter().state.location.pathname;
   const isAi = pathname.startsWith("/ai");
+  const isFullscreen = pathname.startsWith("/list-business");
 
   return (
     <QueryClientProvider client={queryClient}>
       <div className="flex min-h-screen flex-col">
-        {!isAi && <Header />}
+        {!isAi && !isFullscreen && <Header />}
         <main className="flex-1 pb-24 md:pb-0">
           <Outlet />
         </main>
-        {!isAi && <MobileNav />}
+        {!isAi && !isFullscreen && <MobileNav />}
       </div>
     </QueryClientProvider>
   );

@@ -48,6 +48,12 @@ export function Header() {
 
         <div className="flex items-center gap-2">
           <Link
+            to="/list-business"
+            className="hidden rounded-full border border-border bg-surface px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-muted md:inline-flex"
+          >
+            List your business
+          </Link>
+          <Link
             to="/discover"
             className="hidden h-10 w-10 items-center justify-center rounded-full bg-muted text-foreground transition hover:bg-foreground/10 md:flex"
           >
