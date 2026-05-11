@@ -10,8 +10,8 @@ const items = [
   { label: "Saved places", icon: Heart, to: "/saved" },
   { label: "My reviews", icon: Star, to: "/profile" },
   { label: "Recommendation history", icon: History, to: "/ai" },
-  { label: "List your business", icon: Store, to: "/profile" },
-  { label: "Settings", icon: Settings, to: "/profile" },
+  { label: "List your business", icon: Store, to: "/list-business" },
+  { label: "Owner dashboard", icon: Settings, to: "/dashboard" },
 ] as const;
 
 function Profile() {
