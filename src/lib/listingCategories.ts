@@ -34,6 +34,8 @@ export const CATEGORIES: Record<ListingCategory, CategoryConfig> = {
     nameLabel: "Restaurant name",
     pricingLabel: "Average meal price (per person)",
     pricingPlaceholder: "৳ 800",
+    priceMinPlaceholder: "Starting from ৳200",
+    priceMaxPlaceholder: "Up to ৳3000",
     facilities: [
       { key: "rooftop", label: "Rooftop" },
       { key: "buffet", label: "Buffet" },
