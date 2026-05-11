@@ -177,6 +177,8 @@ export const emptyDraft = (): ListingDraft => ({
   phone: "",
   hours: "",
   pricing: "",
+  priceMin: "",
+  priceMax: "",
   cuisine: "",
   rooms: "",
   checkIn: "",
