@@ -15,6 +15,8 @@ export interface CategoryConfig {
   imageGroups: { key: string; label: string }[];
   pricingLabel: string;
   pricingPlaceholder: string;
+  priceMinPlaceholder: string;
+  priceMaxPlaceholder: string;
   nameLabel: string;
 }
 
@@ -32,6 +34,8 @@ export const CATEGORIES: Record<ListingCategory, CategoryConfig> = {
     nameLabel: "Restaurant name",
     pricingLabel: "Average meal price (per person)",
     pricingPlaceholder: "৳ 800",
+    priceMinPlaceholder: "Starting from ৳200",
+    priceMaxPlaceholder: "Up to ৳3000",
     facilities: [
       { key: "rooftop", label: "Rooftop" },
       { key: "buffet", label: "Buffet" },
@@ -69,6 +73,8 @@ export const CATEGORIES: Record<ListingCategory, CategoryConfig> = {
     nameLabel: "Resort name",
     pricingLabel: "Starting room price (per night)",
     pricingPlaceholder: "৳ 6,500",
+    priceMinPlaceholder: "Starting from ৳3500",
+    priceMaxPlaceholder: "Up to ৳25000",
     facilities: [
       { key: "pool", label: "Swimming pool" },
       { key: "villa", label: "Private villa" },
@@ -104,6 +110,8 @@ export const CATEGORIES: Record<ListingCategory, CategoryConfig> = {
     nameLabel: "Gym name",
     pricingLabel: "Monthly membership price",
     pricingPlaceholder: "৳ 2,500",
+    priceMinPlaceholder: "Starting from ৳1500",
+    priceMaxPlaceholder: "Up to ৳6000",
     facilities: [
       { key: "trainer", label: "Trainer available" },
       { key: "femaleTrainer", label: "Female trainer" },
@@ -147,6 +155,8 @@ export interface ListingDraft {
   phone: string;
   hours: string;
   pricing: string;
+  priceMin: string;
+  priceMax: string;
   cuisine?: string;
   rooms?: string;
   checkIn?: string;
@@ -167,6 +177,8 @@ export const emptyDraft = (): ListingDraft => ({
   phone: "",
   hours: "",
   pricing: "",
+  priceMin: "",
+  priceMax: "",
   cuisine: "",
   rooms: "",
   checkIn: "",
