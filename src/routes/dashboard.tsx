@@ -12,6 +12,8 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { CATEGORIES, loadListings, type ListingDraft } from "@/lib/listingCategories";
+import { useAuth } from "@/lib/auth";
+import { AuthGate } from "@/components/auth/AuthGate";
 
 export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
@@ -19,14 +21,26 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function Dashboard() {
+  const { user, hydrated } = useAuth();
   const [listings, setListings] = useState<ListingDraft[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!user) return;
     const list = loadListings();
     setListings(list);
     if (list[0]?.id) setActiveId(list[0].id);
-  }, []);
+  }, [user]);
+
+  if (!hydrated) return <div className="min-h-screen bg-background" />;
+  if (!user) {
+    return (
+      <AuthGate
+        title="Sign in to access your dashboard"
+        subtitle="Manage your listings, view analytics and respond to reviews."
+      />
+    );
+  }
 
   const active = listings.find((l) => l.id === activeId) || listings[0];
 
