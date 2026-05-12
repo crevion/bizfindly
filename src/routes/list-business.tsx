@@ -15,6 +15,8 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth";
+import { AuthGate } from "@/components/auth/AuthGate";
 import {
   CATEGORIES,
   CATEGORY_LIST,
@@ -64,6 +66,7 @@ const STEPS: { id: StepId; label: string }[] = [
 ];
 
 function ListBusiness() {
+  const { user, hydrated: authHydrated } = useAuth();
   const navigate = useNavigate();
   const [draft, setDraft] = useState<ListingDraft>(emptyDraft);
   const [stepIdx, setStepIdx] = useState(0);
