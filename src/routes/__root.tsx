@@ -11,6 +11,7 @@ import {
 import appCss from "../styles.css?url";
 import { Header } from "@/components/layout/Header";
 import { MobileNav } from "@/components/layout/MobileNav";
+import { AuthProvider } from "@/lib/auth";
 
 function NotFoundComponent() {
   return (
@@ -133,13 +134,15 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="flex min-h-screen flex-col">
-        {!isAi && !isFullscreen && <Header />}
-        <main className="flex-1 pb-24 md:pb-0">
-          <Outlet />
-        </main>
-        {!isAi && !isFullscreen && <MobileNav />}
-      </div>
+      <AuthProvider>
+        <div className="flex min-h-screen flex-col">
+          {!isAi && !isFullscreen && <Header />}
+          <main className="flex-1 pb-24 md:pb-0">
+            <Outlet />
+          </main>
+          {!isAi && !isFullscreen && <MobileNav />}
+        </div>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

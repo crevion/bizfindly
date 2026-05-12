@@ -15,6 +15,8 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth";
+import { AuthGate } from "@/components/auth/AuthGate";
 import {
   CATEGORIES,
   CATEGORY_LIST,
@@ -64,6 +66,7 @@ const STEPS: { id: StepId; label: string }[] = [
 ];
 
 function ListBusiness() {
+  const { user, hydrated: authHydrated } = useAuth();
   const navigate = useNavigate();
   const [draft, setDraft] = useState<ListingDraft>(emptyDraft);
   const [stepIdx, setStepIdx] = useState(0);
@@ -73,11 +76,24 @@ function ListBusiness() {
   const [publishError, setPublishError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!user) return;
     const d = loadDraft();
     setDraft(d);
     if (d.category) setStepIdx(1);
     setHydrated(true);
-  }, []);
+  }, [user]);
+
+  if (!authHydrated) {
+    return <div className="flex min-h-screen items-center justify-center bg-background" />;
+  }
+  if (!user) {
+    return (
+      <AuthGate
+        title="Sign in to list your business"
+        subtitle="Reach thousands of discovery users in Bangladesh. Sign in with Google or your mobile number to continue."
+      />
+    );
+  }
 
   useEffect(() => {
     if (hydrated && publishState === "idle") saveDraft(draft);

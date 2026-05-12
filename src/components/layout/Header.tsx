@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Search, Sparkles } from "lucide-react";
+import { Search, Sparkles, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth";
 
 const links = [
   { to: "/", label: "Home" },
@@ -12,6 +13,7 @@ const links = [
 
 export function Header() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { user } = useAuth();
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl">
@@ -67,6 +69,26 @@ export function Header() {
             <span className="hidden sm:inline">AI Discover</span>
             <span className="sm:hidden">AI</span>
           </Link>
+          {user ? (
+            <Link
+              to="/profile"
+              className="ml-1 flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-border bg-muted"
+              title={user.name}
+            >
+              {user.avatar ? (
+                <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
+              ) : (
+                <User className="h-4 w-4" />
+              )}
+            </Link>
+          ) : (
+            <Link
+              to="/list-business"
+              className="ml-1 hidden rounded-full border border-border bg-background px-3 py-2 text-sm font-semibold text-foreground transition hover:bg-muted sm:inline-flex"
+            >
+              Sign in
+            </Link>
+          )}
         </div>
       </div>
     </header>
