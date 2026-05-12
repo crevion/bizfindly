@@ -76,11 +76,24 @@ function ListBusiness() {
   const [publishError, setPublishError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!user) return;
     const d = loadDraft();
     setDraft(d);
     if (d.category) setStepIdx(1);
     setHydrated(true);
-  }, []);
+  }, [user]);
+
+  if (!authHydrated) {
+    return <div className="flex min-h-screen items-center justify-center bg-background" />;
+  }
+  if (!user) {
+    return (
+      <AuthGate
+        title="Sign in to list your business"
+        subtitle="Reach thousands of discovery users in Bangladesh. Sign in with Google or your mobile number to continue."
+      />
+    );
+  }
 
   useEffect(() => {
     if (hydrated && publishState === "idle") saveDraft(draft);
