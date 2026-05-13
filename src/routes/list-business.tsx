@@ -65,6 +65,8 @@ const STEPS: { id: StepId; label: string }[] = [
   { id: "preview", label: "Preview" },
 ];
 
+const STEP_KEY = "bizfindly:listing-step";
+
 function ListBusiness() {
   const { user, hydrated: authHydrated } = useAuth();
   const navigate = useNavigate();
@@ -75,13 +77,39 @@ function ListBusiness() {
   const [publishedId, setPublishedId] = useState<string | null>(null);
   const [publishError, setPublishError] = useState<string | null>(null);
 
+  // Restore draft + exact step after auth (also runs on first hydrate if already signed in)
   useEffect(() => {
     if (!user) return;
     const d = loadDraft();
     setDraft(d);
-    if (d.category) setStepIdx(1);
+    try {
+      const savedStep = typeof window !== "undefined" ? localStorage.getItem(STEP_KEY) : null;
+      const idx = savedStep ? parseInt(savedStep, 10) : NaN;
+      if (Number.isFinite(idx) && idx >= 0 && idx < STEPS.length) {
+        setStepIdx(idx);
+      } else if (d.category) {
+        setStepIdx(1);
+      }
+    } catch {
+      if (d.category) setStepIdx(1);
+    }
     setHydrated(true);
   }, [user]);
+
+  // Persist draft
+  useEffect(() => {
+    if (hydrated && publishState === "idle") saveDraft(draft);
+  }, [draft, hydrated, publishState]);
+
+  // Persist current step so we can resume on the exact step after sign-in
+  useEffect(() => {
+    if (!hydrated || publishState !== "idle") return;
+    try {
+      localStorage.setItem(STEP_KEY, String(stepIdx));
+    } catch {
+      /* ignore */
+    }
+  }, [stepIdx, hydrated, publishState]);
 
   if (!authHydrated) {
     return <div className="flex min-h-screen items-center justify-center bg-background" />;
@@ -94,10 +122,6 @@ function ListBusiness() {
       />
     );
   }
-
-  useEffect(() => {
-    if (hydrated && publishState === "idle") saveDraft(draft);
-  }, [draft, hydrated, publishState]);
 
   const cfg = draft.category ? CATEGORIES[draft.category] : null;
   const isDone = publishState === "done";
@@ -147,6 +171,11 @@ function ListBusiness() {
       const final = publishListing(draft);
       setPublishedId(final.id ?? null);
       setPublishState("done");
+      try {
+        localStorage.removeItem(STEP_KEY);
+      } catch {
+        /* ignore */
+      }
     } catch (e) {
       console.error("publish failed", e);
       setPublishError("Something went wrong while submitting your listing. Please try again.");
