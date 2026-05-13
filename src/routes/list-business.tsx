@@ -171,6 +171,11 @@ function ListBusiness() {
       const final = publishListing(draft);
       setPublishedId(final.id ?? null);
       setPublishState("done");
+      try {
+        localStorage.removeItem(STEP_KEY);
+      } catch {
+        /* ignore */
+      }
     } catch (e) {
       console.error("publish failed", e);
       setPublishError("Something went wrong while submitting your listing. Please try again.");
