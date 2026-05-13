@@ -65,6 +65,8 @@ const STEPS: { id: StepId; label: string }[] = [
   { id: "preview", label: "Preview" },
 ];
 
+const STEP_KEY = "bizfindly:listing-step";
+
 function ListBusiness() {
   const { user, hydrated: authHydrated } = useAuth();
   const navigate = useNavigate();
