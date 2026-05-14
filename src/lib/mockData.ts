@@ -1,4 +1,4 @@
-export type Category = "restaurant" | "cafe" | "resort";
+export type Category = "restaurant" | "cafe" | "resort" | "gym";
 
 export interface Place {
   id: string;
