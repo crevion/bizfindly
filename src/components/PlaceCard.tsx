@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { Heart, MapPin, Star } from "lucide-react";
 import type { Place } from "@/lib/mockData";
 import { cn } from "@/lib/utils";
+import { VerifiedBadge } from "@/components/verification/VerifiedBadge";
+import { getPlaceVerification } from "@/lib/verification";
 
 const priceLabel = (n: number) => "৳".repeat(n);
 
@@ -48,6 +50,12 @@ export function PlaceCard({
               {place.matchScore}% match
             </span>
           )}
+          {(() => {
+            const v = getPlaceVerification(place.id);
+            if (v.status === "verified") return <VerifiedBadge status="verified" size="sm" />;
+            if (v.status === "pending") return <VerifiedBadge status="pending" size="sm" />;
+            return null;
+          })()}
         </div>
 
         <button
