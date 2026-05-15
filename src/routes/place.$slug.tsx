@@ -5,8 +5,10 @@ import {
   Globe,
   Heart,
   MapPin,
+  MessageSquare,
   Phone,
   Share2,
+  ShieldCheck,
   Sparkles,
   Star,
   Tag,
@@ -14,6 +16,8 @@ import {
 } from "lucide-react";
 import { findPlace, places } from "@/lib/mockData";
 import { PlaceCard } from "@/components/PlaceCard";
+import { VerifiedBadge } from "@/components/verification/VerifiedBadge";
+import { getPlaceVerification } from "@/lib/verification";
 
 export const Route = createFileRoute("/place/$slug")({
   component: PlacePage,
@@ -71,6 +75,9 @@ function PlacePage() {
   const { slug } = Route.useParams();
   const place = findPlace(slug)!;
   const similar = places.filter((p) => p.id !== place.id && p.category === place.category).slice(0, 4);
+  const v = getPlaceVerification(place.id);
+  const isVerified = v.status === "verified";
+  const isPending = v.status === "pending";
 
   return (
     <div>
