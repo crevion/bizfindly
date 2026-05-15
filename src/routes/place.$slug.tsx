@@ -111,11 +111,9 @@ function PlacePage() {
             <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <span className="rounded-full bg-muted px-2.5 py-1 capitalize">{place.category}</span>
               {place.cuisine && <span className="rounded-full bg-muted px-2.5 py-1">{place.cuisine}</span>}
-              {place.verified && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-2.5 py-1 text-brand">
-                  <BadgeCheck className="h-3.5 w-3.5" /> Verified
-                </span>
-              )}
+              {isVerified && <VerifiedBadge status="verified" size="md" />}
+              {isPending && <VerifiedBadge status="pending" size="md" />}
+              {!isVerified && !isPending && <VerifiedBadge status="unclaimed" size="md" />}
               {place.trending && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-foreground px-2.5 py-1 text-background">
                   <TrendingUp className="h-3.5 w-3.5" /> Trending
