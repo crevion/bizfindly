@@ -5,8 +5,10 @@ import {
   Globe,
   Heart,
   MapPin,
+  MessageSquare,
   Phone,
   Share2,
+  ShieldCheck,
   Sparkles,
   Star,
   Tag,
@@ -14,6 +16,8 @@ import {
 } from "lucide-react";
 import { findPlace, places } from "@/lib/mockData";
 import { PlaceCard } from "@/components/PlaceCard";
+import { VerifiedBadge } from "@/components/verification/VerifiedBadge";
+import { getPlaceVerification } from "@/lib/verification";
 
 export const Route = createFileRoute("/place/$slug")({
   component: PlacePage,
@@ -71,6 +75,9 @@ function PlacePage() {
   const { slug } = Route.useParams();
   const place = findPlace(slug)!;
   const similar = places.filter((p) => p.id !== place.id && p.category === place.category).slice(0, 4);
+  const v = getPlaceVerification(place.id);
+  const isVerified = v.status === "verified";
+  const isPending = v.status === "pending";
 
   return (
     <div>
@@ -104,11 +111,9 @@ function PlacePage() {
             <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <span className="rounded-full bg-muted px-2.5 py-1 capitalize">{place.category}</span>
               {place.cuisine && <span className="rounded-full bg-muted px-2.5 py-1">{place.cuisine}</span>}
-              {place.verified && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-2.5 py-1 text-brand">
-                  <BadgeCheck className="h-3.5 w-3.5" /> Verified
-                </span>
-              )}
+              {isVerified && <VerifiedBadge status="verified" size="md" />}
+              {isPending && <VerifiedBadge status="pending" size="md" />}
+              {!isVerified && !isPending && <VerifiedBadge status="unclaimed" size="md" />}
               {place.trending && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-foreground px-2.5 py-1 text-background">
                   <TrendingUp className="h-3.5 w-3.5" /> Trending
@@ -135,6 +140,48 @@ function PlacePage() {
                 {place.hours}
               </span>
             </div>
+
+            {/* Verification / Claim banner */}
+            {isVerified ? (
+              <div className="mt-6 flex items-center gap-3 rounded-2xl border border-sky-500/20 bg-gradient-to-r from-sky-500/10 to-blue-600/5 p-4">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 text-white">
+                  <ShieldCheck className="h-5 w-5" />
+                </span>
+                <div className="flex-1">
+                  <div className="text-sm font-bold">Claimed by Owner · Actively managed</div>
+                  <div className="text-xs text-muted-foreground">
+                    <MessageSquare className="mr-1 inline h-3 w-3" /> Responds within ~2 hours · 98% response rate
+                  </div>
+                </div>
+                <VerifiedBadge status="verified" size="sm" />
+              </div>
+            ) : isPending ? (
+              <div className="mt-6 flex items-center gap-3 rounded-2xl border border-amber-500/30 bg-amber-50 p-4 dark:bg-amber-500/10">
+                <Clock className="h-5 w-5 text-amber-600" />
+                <div className="text-sm">
+                  <span className="font-semibold">Verification in progress.</span>{" "}
+                  <span className="text-muted-foreground">An owner has submitted documents for review.</span>
+                </div>
+              </div>
+            ) : (
+              <Link
+                to="/claim-business"
+                className="mt-6 flex items-center gap-3 rounded-2xl border border-dashed border-border bg-surface p-4 transition hover:border-foreground/30"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 text-white">
+                  <BadgeCheck className="h-5 w-5" />
+                </span>
+                <div className="flex-1">
+                  <div className="text-sm font-bold">Own this business?</div>
+                  <div className="text-xs text-muted-foreground">
+                    Claim it to manage your listing, respond to reviews and unlock the verified badge.
+                  </div>
+                </div>
+                <span className="rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-background">
+                  Claim now
+                </span>
+              </Link>
+            )}
 
             {/* AI Summary */}
             <div className="mt-8 overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-brand-soft to-card p-6 shadow-soft">

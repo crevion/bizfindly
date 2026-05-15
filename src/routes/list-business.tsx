@@ -17,6 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { AuthGate } from "@/components/auth/AuthGate";
+import { submitClaim } from "@/lib/verification";
 import {
   CATEGORIES,
   CATEGORY_LIST,
@@ -169,6 +170,25 @@ function ListBusiness() {
       // Simulate async publish for smooth transition
       await new Promise((r) => setTimeout(r, 900));
       const final = publishListing(draft);
+      // Auto-create a pending verification claim for the publishing owner
+      if (user && final.id) {
+        try {
+          submitClaim({
+            placeId: final.id,
+            placeName: final.name,
+            ownerId: user.id,
+            ownerName: user.name,
+            ownerEmail: user.email || "",
+            ownerPhone: user.phone || "",
+            ownerRole: "Owner",
+            businessAddress: final.location,
+            documents: [],
+            social: {},
+          });
+        } catch {
+          /* non-fatal */
+        }
+      }
       setPublishedId(final.id ?? null);
       setPublishState("done");
       try {
