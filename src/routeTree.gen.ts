@@ -14,9 +14,11 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ListBusinessRouteImport } from './routes/list-business'
 import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ClaimBusinessRouteImport } from './routes/claim-business'
 import { Route as AiRouteImport } from './routes/ai'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlaceSlugRouteImport } from './routes/place.$slug'
+import { Route as AdminVerificationsRouteImport } from './routes/admin.verifications'
 
 const SavedRoute = SavedRouteImport.update({
   id: '/saved',
@@ -43,6 +45,11 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClaimBusinessRoute = ClaimBusinessRouteImport.update({
+  id: '/claim-business',
+  path: '/claim-business',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AiRoute = AiRouteImport.update({
   id: '/ai',
   path: '/ai',
@@ -58,36 +65,47 @@ const PlaceSlugRoute = PlaceSlugRouteImport.update({
   path: '/place/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminVerificationsRoute = AdminVerificationsRouteImport.update({
+  id: '/admin/verifications',
+  path: '/admin/verifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
+  '/claim-business': typeof ClaimBusinessRoute
   '/dashboard': typeof DashboardRoute
   '/discover': typeof DiscoverRoute
   '/list-business': typeof ListBusinessRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
+  '/admin/verifications': typeof AdminVerificationsRoute
   '/place/$slug': typeof PlaceSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
+  '/claim-business': typeof ClaimBusinessRoute
   '/dashboard': typeof DashboardRoute
   '/discover': typeof DiscoverRoute
   '/list-business': typeof ListBusinessRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
+  '/admin/verifications': typeof AdminVerificationsRoute
   '/place/$slug': typeof PlaceSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
+  '/claim-business': typeof ClaimBusinessRoute
   '/dashboard': typeof DashboardRoute
   '/discover': typeof DiscoverRoute
   '/list-business': typeof ListBusinessRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
+  '/admin/verifications': typeof AdminVerificationsRoute
   '/place/$slug': typeof PlaceSlugRoute
 }
 export interface FileRouteTypes {
@@ -95,42 +113,50 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/ai'
+    | '/claim-business'
     | '/dashboard'
     | '/discover'
     | '/list-business'
     | '/profile'
     | '/saved'
+    | '/admin/verifications'
     | '/place/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/ai'
+    | '/claim-business'
     | '/dashboard'
     | '/discover'
     | '/list-business'
     | '/profile'
     | '/saved'
+    | '/admin/verifications'
     | '/place/$slug'
   id:
     | '__root__'
     | '/'
     | '/ai'
+    | '/claim-business'
     | '/dashboard'
     | '/discover'
     | '/list-business'
     | '/profile'
     | '/saved'
+    | '/admin/verifications'
     | '/place/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AiRoute: typeof AiRoute
+  ClaimBusinessRoute: typeof ClaimBusinessRoute
   DashboardRoute: typeof DashboardRoute
   DiscoverRoute: typeof DiscoverRoute
   ListBusinessRoute: typeof ListBusinessRoute
   ProfileRoute: typeof ProfileRoute
   SavedRoute: typeof SavedRoute
+  AdminVerificationsRoute: typeof AdminVerificationsRoute
   PlaceSlugRoute: typeof PlaceSlugRoute
 }
 
@@ -171,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/claim-business': {
+      id: '/claim-business'
+      path: '/claim-business'
+      fullPath: '/claim-business'
+      preLoaderRoute: typeof ClaimBusinessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ai': {
       id: '/ai'
       path: '/ai'
@@ -192,17 +225,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlaceSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/verifications': {
+      id: '/admin/verifications'
+      path: '/admin/verifications'
+      fullPath: '/admin/verifications'
+      preLoaderRoute: typeof AdminVerificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiRoute: AiRoute,
+  ClaimBusinessRoute: ClaimBusinessRoute,
   DashboardRoute: DashboardRoute,
   DiscoverRoute: DiscoverRoute,
   ListBusinessRoute: ListBusinessRoute,
   ProfileRoute: ProfileRoute,
   SavedRoute: SavedRoute,
+  AdminVerificationsRoute: AdminVerificationsRoute,
   PlaceSlugRoute: PlaceSlugRoute,
 }
 export const routeTree = rootRouteImport
