@@ -80,8 +80,8 @@ export interface FileRoutesByFullPath {
   '/list-business': typeof ListBusinessRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
-  '/admin/verifications': typeof AdminVerificationsRoute
   '/place/$slug': typeof PlaceSlugRoute
+  '/admin/verifications': typeof AdminVerificationsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -92,8 +92,8 @@ export interface FileRoutesByTo {
   '/list-business': typeof ListBusinessRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
-  '/admin/verifications': typeof AdminVerificationsRoute
   '/place/$slug': typeof PlaceSlugRoute
+  '/admin/verifications': typeof AdminVerificationsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -105,8 +105,8 @@ export interface FileRoutesById {
   '/list-business': typeof ListBusinessRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
-  '/admin/verifications': typeof AdminVerificationsRoute
   '/place/$slug': typeof PlaceSlugRoute
+  '/admin/verifications': typeof AdminVerificationsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -119,8 +119,8 @@ export interface FileRouteTypes {
     | '/list-business'
     | '/profile'
     | '/saved'
-    | '/admin/verifications'
     | '/place/$slug'
+    | '/admin/verifications'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -131,8 +131,8 @@ export interface FileRouteTypes {
     | '/list-business'
     | '/profile'
     | '/saved'
-    | '/admin/verifications'
     | '/place/$slug'
+    | '/admin/verifications'
   id:
     | '__root__'
     | '/'
@@ -143,8 +143,8 @@ export interface FileRouteTypes {
     | '/list-business'
     | '/profile'
     | '/saved'
-    | '/admin/verifications'
     | '/place/$slug'
+    | '/admin/verifications'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -156,8 +156,8 @@ export interface RootRouteChildren {
   ListBusinessRoute: typeof ListBusinessRoute
   ProfileRoute: typeof ProfileRoute
   SavedRoute: typeof SavedRoute
-  AdminVerificationsRoute: typeof AdminVerificationsRoute
   PlaceSlugRoute: typeof PlaceSlugRoute
+  AdminVerificationsRoute: typeof AdminVerificationsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -244,8 +244,8 @@ const rootRouteChildren: RootRouteChildren = {
   ListBusinessRoute: ListBusinessRoute,
   ProfileRoute: ProfileRoute,
   SavedRoute: SavedRoute,
-  AdminVerificationsRoute: AdminVerificationsRoute,
   PlaceSlugRoute: PlaceSlugRoute,
+  AdminVerificationsRoute: AdminVerificationsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
