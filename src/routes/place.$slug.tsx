@@ -1,9 +1,15 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import {
   BadgeCheck,
+  ChevronLeft,
+  ChevronRight,
   Clock,
+  Copy,
   Globe,
+  Grid3x3,
   Heart,
+  Lock,
   MapPin,
   MessageSquare,
   Phone,
@@ -13,11 +19,13 @@ import {
   Star,
   Tag,
   TrendingUp,
+  X,
 } from "lucide-react";
 import { findPlace, places } from "@/lib/mockData";
 import { PlaceCard } from "@/components/PlaceCard";
 import { VerifiedBadge } from "@/components/verification/VerifiedBadge";
 import { getPlaceVerification } from "@/lib/verification";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/place/$slug")({
   component: PlacePage,
@@ -74,31 +82,77 @@ const reviews = [
 function PlacePage() {
   const { slug } = Route.useParams();
   const place = findPlace(slug)!;
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const similar = places.filter((p) => p.id !== place.id && p.category === place.category).slice(0, 4);
   const v = getPlaceVerification(place.id);
   const isVerified = v.status === "verified";
   const isPending = v.status === "pending";
+
+  const [lightbox, setLightbox] = useState<number | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (lightbox === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightbox(null);
+      if (e.key === "ArrowRight") setLightbox((i) => (i === null ? 0 : (i + 1) % place.gallery.length));
+      if (e.key === "ArrowLeft") setLightbox((i) => (i === null ? 0 : (i - 1 + place.gallery.length) % place.gallery.length));
+    };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [lightbox, place.gallery.length]);
+
+  const copyCoupon = async () => {
+    try {
+      await navigator.clipboard.writeText("BIZ10");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      /* ignore */
+    }
+  };
 
   return (
     <div>
       {/* HERO GALLERY */}
       <div className="relative">
         <div className="grid h-[60vh] grid-cols-4 grid-rows-2 gap-1 overflow-hidden md:h-[520px]">
-          <div className="col-span-4 row-span-2 md:col-span-2">
-            <img src={place.gallery[0]} alt={place.name} className="h-full w-full object-cover" />
-          </div>
+          <button
+            type="button"
+            onClick={() => setLightbox(0)}
+            className="group relative col-span-4 row-span-2 overflow-hidden md:col-span-2"
+          >
+            <img src={place.gallery[0]} alt={place.name} loading="lazy" className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]" />
+          </button>
           {place.gallery.slice(1, 5).map((g, i) => (
-            <div key={i} className="hidden md:block">
-              <img src={g} alt="" className="h-full w-full object-cover" />
-            </div>
+            <button
+              key={i}
+              type="button"
+              onClick={() => setLightbox(i + 1)}
+              className="group relative hidden overflow-hidden md:block"
+            >
+              <img src={g} alt="" loading="lazy" className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]" />
+            </button>
           ))}
         </div>
 
+        <button
+          onClick={() => setLightbox(0)}
+          className="absolute bottom-4 right-4 inline-flex items-center gap-1.5 rounded-full bg-background/90 px-4 py-2 text-xs font-bold shadow-card backdrop-blur transition hover:bg-background md:bottom-6 md:right-6"
+        >
+          <Grid3x3 className="h-3.5 w-3.5" /> View all {place.gallery.length} photos
+        </button>
+
         <div className="absolute right-4 top-4 flex gap-2 md:right-8 md:top-8">
-          <button className="flex h-10 w-10 items-center justify-center rounded-full glass">
+          <button className="flex h-10 w-10 items-center justify-center rounded-full glass transition hover:scale-105">
             <Share2 className="h-4 w-4" />
           </button>
-          <button className="flex h-10 w-10 items-center justify-center rounded-full glass">
+          <button className="flex h-10 w-10 items-center justify-center rounded-full glass transition hover:scale-105">
             <Heart className="h-4 w-4" />
           </button>
         </div>
