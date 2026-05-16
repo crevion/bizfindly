@@ -11,7 +11,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "AI-powered local discovery for restaurants, cafes and resorts in Bangladesh. Find places that match your mood, budget and vibe.",
+          "AI-powered local discovery for restaurants, resorts and gyms in Bangladesh. Find places that match your mood, budget and vibe.",
       },
     ],
   }),
@@ -59,8 +59,9 @@ function ScrollRow({ children }: { children: React.ReactNode }) {
 
 function Home() {
   const trending = places.filter((p) => p.trending || p.rating >= 4.7);
-  const cafes = places.filter((p) => p.category === "cafe");
+  const restaurants = places.filter((p) => p.category === "restaurant");
   const resorts = places.filter((p) => p.category === "resort");
+  const gyms = places.filter((p) => p.category === "gym");
   const hidden = places.filter((p) => p.hiddenGem);
   const budget = places.filter((p) => p.priceLevel <= 2);
   const couple = places.filter((p) => p.tags.includes("Couple Spot"));
@@ -165,8 +166,8 @@ function Home() {
         <div className="grid grid-cols-3 gap-3 md:gap-5">
           {[
             { label: "Restaurants", to: "/discover", img: places[0].image, count: "3.4k+" },
-            { label: "Cafes", to: "/discover", img: places[1].image, count: "1.1k+" },
-            { label: "Resorts", to: "/discover", img: places[2].image, count: "320+" },
+            { label: "Resorts", to: "/discover", img: places[1].image, count: "320+" },
+            { label: "Gyms", to: "/discover", img: places[3].image, count: "180+" },
           ].map((c) => (
             <Link
               key={c.label}
@@ -196,9 +197,17 @@ function Home() {
         </ScrollRow>
       </Section>
 
-      <Section title="Popular cafes" subtitle="Specialty coffee, cozy corners and dessert moments" cta={{ label: "See all", to: "/discover" }}>
+      <Section title="Popular restaurants" subtitle="Rooftops, fine dining and family favourites" cta={{ label: "See all", to: "/discover" }}>
         <ScrollRow>
-          {cafes.map((p) => (
+          {restaurants.map((p) => (
+            <PlaceCard key={p.id} place={p} className="w-[260px] flex-none snap-start" />
+          ))}
+        </ScrollRow>
+      </Section>
+
+      <Section title="Top gyms" subtitle="Premium training spaces and trusted trainers" cta={{ label: "See all", to: "/discover" }}>
+        <ScrollRow>
+          {gyms.map((p) => (
             <PlaceCard key={p.id} place={p} className="w-[260px] flex-none snap-start" />
           ))}
         </ScrollRow>
