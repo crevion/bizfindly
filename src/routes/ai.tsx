@@ -86,7 +86,15 @@ function AiFlow() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
 
-  const steps = track === "restaurant" ? restaurantSteps : resortSteps;
+  const gymSteps: Step[] = [
+    { key: "gender", question: "Who's it for?", options: ["Men only", "Women only", "Mixed"] },
+    { key: "goal", question: "What's your main goal?", options: ["Weight loss", "Muscle gain", "Endurance", "General fitness"] },
+    { key: "budget", question: "Monthly budget?", options: ["Budget", "Mid-range", "Premium", "Luxury"] },
+    { key: "facilities", question: "Must-have facilities", multi: true, options: ["AC", "Female Trainer", "Cardio", "Weight Training", "Shower Room", "Parking"] },
+    { key: "area", question: "Where to?", options: ["Nearby", "Dhanmondi", "Gulshan", "Banani", "Uttara", "Bashundhara"] },
+  ];
+
+  const steps = track === "restaurant" ? restaurantSteps : track === "resort" ? resortSteps : gymSteps;
   const current = steps[step];
   const progress = ((step + 1) / steps.length) * 100;
 
@@ -112,7 +120,7 @@ function AiFlow() {
 
   const results = useMemo(() => {
     if (stage !== "results") return [];
-    const targetCat = track === "restaurant" ? "restaurant" : "resort";
+    const targetCat = track;
     const budgetMap: Record<string, number> = { Budget: 1, "Mid-range": 2, Premium: 3, Luxury: 4 };
     const desiredBudget = budgetMap[(answers.budget as string) ?? "Mid-range"] ?? 2;
     const area = answers.area as string | undefined;
@@ -120,7 +128,7 @@ function AiFlow() {
     const matters = (answers.matters as string[]) ?? [];
 
     return places
-      .filter((p) => p.category === targetCat || p.category === "cafe")
+      .filter((p) => p.category === targetCat)
       .map((p) => {
         let score = 60;
         if (p.category === targetCat) score += 15;
@@ -179,41 +187,66 @@ function AiFlow() {
               Answer a few quick questions and we'll match you with places that fit your mood and budget.
             </p>
 
-            <div className="mt-10 grid gap-4 sm:grid-cols-2">
+            <div className="mt-10 grid gap-4 sm:grid-cols-3">
               {[
                 {
                   key: "restaurant" as const,
-                  title: "Restaurant or Cafe",
-                  subtitle: "Find a place to eat or hang out",
-                  img: places[0].image,
+                  title: "Restaurants",
+                  subtitle: "Where to eat tonight",
+                  Icon: UtensilsCrossed,
+                  accent: "from-orange-500 to-rose-500",
+                  ring: "ring-orange-500/40",
                 },
                 {
                   key: "resort" as const,
-                  title: "Resort or Getaway",
+                  title: "Resorts",
                   subtitle: "Plan a weekend escape",
-                  img: places[2].image,
+                  Icon: Palmtree,
+                  accent: "from-emerald-500 to-teal-500",
+                  ring: "ring-emerald-500/40",
                 },
-              ].map((c) => (
-                <button
-                  key={c.key}
-                  onClick={() => {
-                    setTrack(c.key);
-                    setStep(0);
-                    setAnswers({});
-                    setStage("questions");
-                  }}
-                  className="group relative overflow-hidden rounded-3xl text-left shadow-card transition hover:-translate-y-1"
-                >
-                  <div className="aspect-[4/3]">
-                    <img src={c.img} alt={c.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-5 text-white">
-                    <div className="font-display text-xl font-bold">{c.title}</div>
-                    <div className="text-sm opacity-90">{c.subtitle}</div>
-                  </div>
-                </button>
-              ))}
+                {
+                  key: "gym" as const,
+                  title: "Gyms",
+                  subtitle: "Find your training home",
+                  Icon: Dumbbell,
+                  accent: "from-indigo-500 to-violet-500",
+                  ring: "ring-indigo-500/40",
+                },
+              ].map((c) => {
+                const selected = track === c.key;
+                return (
+                  <button
+                    key={c.key}
+                    onClick={() => {
+                      setTrack(c.key);
+                      setStep(0);
+                      setAnswers({});
+                      setStage("questions");
+                    }}
+                    className={cn(
+                      "group relative flex flex-col items-start gap-4 overflow-hidden rounded-3xl border-2 bg-card p-6 text-left transition hover:-translate-y-1 hover:shadow-card",
+                      selected ? `border-foreground shadow-glow ring-4 ${c.ring}` : "border-border",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-soft",
+                        c.accent,
+                      )}
+                    >
+                      <c.Icon className="h-7 w-7" />
+                    </span>
+                    <div>
+                      <div className="font-display text-xl font-bold">{c.title}</div>
+                      <div className="mt-1 text-sm text-muted-foreground">{c.subtitle}</div>
+                    </div>
+                    <span className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-brand">
+                      Start <ArrowRight className="h-3.5 w-3.5" />
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
