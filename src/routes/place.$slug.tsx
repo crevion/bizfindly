@@ -387,15 +387,56 @@ function PlacePage() {
               </div>
             </div>
 
-            {/* Coupon */}
-            <div className="mt-4 overflow-hidden rounded-3xl border border-dashed border-brand/40 bg-brand/5 p-5">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand">
-                <Tag className="h-4 w-4" /> BizFindly offer
+            {/* Coupon — auth-locked */}
+            <div className="relative mt-4 overflow-hidden rounded-3xl border border-dashed border-brand/40 bg-gradient-to-br from-brand/10 via-brand/5 to-transparent p-5">
+              <div className="flex items-center justify-between gap-2">
+                <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand">
+                  <Tag className="h-4 w-4" /> BizFindly offer
+                </div>
+                <span className="rounded-full bg-brand px-2.5 py-1 text-[10px] font-bold uppercase text-brand-foreground">
+                  10% OFF
+                </span>
               </div>
               <div className="mt-2 font-display text-lg font-bold">10% off your first visit</div>
               <p className="mt-1 text-xs text-muted-foreground">
-                Mention code <span className="font-bold text-foreground">BIZ10</span> at checkout.
+                Valid until 31 Dec · One use per customer at {place.name}.
               </p>
+
+              {user ? (
+                <div className="mt-4 flex items-center justify-between gap-2 rounded-2xl border border-dashed border-brand/50 bg-background px-4 py-3">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Your code
+                    </p>
+                    <p className="font-mono text-lg font-bold tracking-[0.2em] text-foreground">BIZ10</p>
+                  </div>
+                  <button
+                    onClick={copyCoupon}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-background transition hover:opacity-90"
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                    {copied ? "Copied" : "Copy"}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => navigate({ to: "/list-business" })}
+                  className="group relative mt-4 flex w-full items-center justify-between gap-3 overflow-hidden rounded-2xl border border-border bg-card px-4 py-3 text-left transition hover:border-foreground/30"
+                >
+                  <div className="flex-1">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Your code
+                    </p>
+                    <p className="select-none font-mono text-lg font-bold tracking-[0.2em] text-foreground blur-[6px] transition group-hover:blur-[5px]">
+                      BIZ10
+                    </p>
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 rounded-full gradient-brand px-3.5 py-2 text-xs font-semibold text-brand-foreground shadow-glow">
+                    <Lock className="h-3.5 w-3.5" />
+                    Login to reveal
+                  </span>
+                </button>
+              )}
             </div>
           </aside>
         </div>
@@ -410,6 +451,57 @@ function PlacePage() {
           </div>
         </section>
       </div>
+
+      {/* LIGHTBOX */}
+      {lightbox !== null && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-sm">
+          <button
+            onClick={() => setLightbox(null)}
+            className="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition hover:bg-white/20"
+            aria-label="Close"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <div className="absolute left-1/2 top-4 -translate-x-1/2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold text-white backdrop-blur">
+            {lightbox + 1} / {place.gallery.length}
+          </div>
+
+          <button
+            onClick={() => setLightbox((i) => (i === null ? 0 : (i - 1 + place.gallery.length) % place.gallery.length))}
+            className="absolute left-3 z-10 hidden h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition hover:bg-white/20 md:flex"
+            aria-label="Previous"
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+          <button
+            onClick={() => setLightbox((i) => (i === null ? 0 : (i + 1) % place.gallery.length))}
+            className="absolute right-3 z-10 hidden h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition hover:bg-white/20 md:flex"
+            aria-label="Next"
+          >
+            <ChevronRight className="h-6 w-6" />
+          </button>
+
+          <img
+            src={place.gallery[lightbox]}
+            alt=""
+            className="max-h-[85vh] max-w-[92vw] object-contain"
+          />
+
+          <div className="absolute inset-x-0 bottom-4 mx-auto flex max-w-[92vw] gap-2 overflow-x-auto px-2">
+            {place.gallery.map((g, i) => (
+              <button
+                key={i}
+                onClick={() => setLightbox(i)}
+                className={`relative h-16 w-20 shrink-0 overflow-hidden rounded-lg transition ${
+                  i === lightbox ? "ring-2 ring-white" : "opacity-60 hover:opacity-100"
+                }`}
+              >
+                <img src={g} alt="" className="h-full w-full object-cover" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
