@@ -7,8 +7,8 @@ const links = [
   { to: "/", label: "Home" },
   { to: "/discover", label: "Discover" },
   { to: "/discover?cat=restaurant", label: "Restaurants" },
-  { to: "/discover?cat=cafe", label: "Cafes" },
   { to: "/discover?cat=resort", label: "Resorts" },
+  { to: "/discover?cat=gym", label: "Gyms" },
 ] as const;
 
 export function Header() {
