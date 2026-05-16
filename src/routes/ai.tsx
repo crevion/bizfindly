@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Sparkles, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Dumbbell, Palmtree, Sparkles, UtensilsCrossed, X } from "lucide-react";
 import { places } from "@/lib/mockData";
 import { PlaceCard } from "@/components/PlaceCard";
 import { cn } from "@/lib/utils";
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/ai")({
   }),
 });
 
-type Track = "restaurant" | "resort";
+type Track = "restaurant" | "resort" | "gym";
 
 interface Step {
   key: string;
@@ -34,7 +34,6 @@ const restaurantSteps: Step[] = [
       "Rooftop Dining",
       "Budget Meal",
       "Buffet",
-      "Cafe Hangout",
       "Fine Dining",
       "Birthday",
       "Fast Food",
@@ -59,7 +58,7 @@ const restaurantSteps: Step[] = [
   {
     key: "cuisine",
     question: "Pick a cuisine",
-    options: ["Bangla", "Chinese", "Thai", "Italian", "BBQ", "Seafood", "Cafe", "Dessert"],
+    options: ["Bangla", "Chinese", "Thai", "Italian", "BBQ", "Seafood", "Dessert"],
   },
   {
     key: "area",
