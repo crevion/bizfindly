@@ -268,5 +268,5 @@ export const places: Place[] = [
 
 export const findPlace = (slug: string) => places.find((p) => p.slug === slug);
 
-export const cuisines = ["Bangla", "Chinese", "Thai", "Italian", "BBQ", "Seafood", "Cafe", "Dessert"];
+export const cuisines = ["Bangla", "Chinese", "Thai", "Italian", "BBQ", "Seafood", "Dessert"];
 export const areas = ["Nearby", "Dhanmondi", "Gulshan", "Banani", "Uttara", "Bashundhara", "Gazipur", "Cox's Bazar", "Sajek", "Old Dhaka"];
