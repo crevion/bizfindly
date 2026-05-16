@@ -1,4 +1,4 @@
-export type Category = "restaurant" | "cafe" | "resort" | "gym";
+export type Category = "restaurant" | "resort" | "gym";
 
 export interface Place {
   id: string;
@@ -81,35 +81,6 @@ export const places: Place[] = [
     ],
   },
   {
-    id: "2",
-    slug: "bay-leaf-cafe",
-    name: "Bay Leaf Café",
-    category: "cafe",
-    cuisine: "Café • Dessert",
-    location: "Dhanmondi 27, Dhaka",
-    area: "Dhanmondi",
-    image: img("photo-1554118811-1e0d58224f24"),
-    gallery: [
-      img("photo-1554118811-1e0d58224f24"),
-      img("photo-1453614512568-c4024d13c247"),
-      img("photo-1521017432531-fbd92d768814"),
-    ],
-    rating: 4.6,
-    reviews: 842,
-    priceLevel: 2,
-    priceRange: "৳৳ • 500–900 per person",
-    tags: ["Hidden Gem", "Instagrammable", "Quiet"],
-    facilities: ["WiFi", "AC", "Outdoor Seating", "Card Accepted"],
-    hours: "9:00 AM – 11:00 PM",
-    phone: "+880 1700 000002",
-    description:
-      "Cozy plant-filled café known for cold brews, hand-crafted pastries and a quiet upstairs work corner.",
-    aiSummary:
-      "Great for solo work sessions, casual catch-ups, and dessert dates with a budget-friendly vibe.",
-    hiddenGem: true,
-    verified: true,
-  },
-  {
     id: "3",
     slug: "sahara-beach-resort",
     name: "Sahara Beach Resort",
@@ -161,29 +132,6 @@ export const places: Place[] = [
       "Iconic kacchi biryani served in a no-frills, energetic family setting. A local legend.",
     aiSummary:
       "Best for family meals on a budget — authentic taste over fancy interior.",
-    verified: true,
-  },
-  {
-    id: "5",
-    slug: "north-end-coffee",
-    name: "North End Coffee",
-    category: "cafe",
-    cuisine: "Café • Specialty Coffee",
-    location: "Banani 11, Dhaka",
-    area: "Banani",
-    image: img("photo-1495474472287-4d71bcdd2085"),
-    gallery: [img("photo-1495474472287-4d71bcdd2085"), img("photo-1442512595331-e89e73853f31")],
-    rating: 4.7,
-    reviews: 1102,
-    priceLevel: 2,
-    priceRange: "৳৳ • 400–800 per person",
-    tags: ["Trending", "Best Coffee", "WiFi"],
-    facilities: ["WiFi", "AC", "Power Outlets", "Card Accepted"],
-    hours: "8:00 AM – 11:00 PM",
-    phone: "+880 1700 000005",
-    description: "Bangladesh's pioneering specialty coffee roaster with a warm minimalist space.",
-    aiSummary: "Perfect for remote work, casual meetings, and serious coffee lovers.",
-    trending: true,
     verified: true,
   },
   {
@@ -320,5 +268,5 @@ export const places: Place[] = [
 
 export const findPlace = (slug: string) => places.find((p) => p.slug === slug);
 
-export const cuisines = ["Bangla", "Chinese", "Thai", "Italian", "BBQ", "Seafood", "Cafe", "Dessert"];
+export const cuisines = ["Bangla", "Chinese", "Thai", "Italian", "BBQ", "Seafood", "Dessert"];
 export const areas = ["Nearby", "Dhanmondi", "Gulshan", "Banani", "Uttara", "Bashundhara", "Gazipur", "Cox's Bazar", "Sajek", "Old Dhaka"];
