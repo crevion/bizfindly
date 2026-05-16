@@ -1,4 +1,4 @@
-export type Category = "restaurant" | "cafe" | "resort" | "gym";
+export type Category = "restaurant" | "resort" | "gym";
 
 export interface Place {
   id: string;
@@ -79,35 +79,6 @@ export const places: Place[] = [
         ],
       },
     ],
-  },
-  {
-    id: "2",
-    slug: "bay-leaf-cafe",
-    name: "Bay Leaf Café",
-    category: "cafe",
-    cuisine: "Café • Dessert",
-    location: "Dhanmondi 27, Dhaka",
-    area: "Dhanmondi",
-    image: img("photo-1554118811-1e0d58224f24"),
-    gallery: [
-      img("photo-1554118811-1e0d58224f24"),
-      img("photo-1453614512568-c4024d13c247"),
-      img("photo-1521017432531-fbd92d768814"),
-    ],
-    rating: 4.6,
-    reviews: 842,
-    priceLevel: 2,
-    priceRange: "৳৳ • 500–900 per person",
-    tags: ["Hidden Gem", "Instagrammable", "Quiet"],
-    facilities: ["WiFi", "AC", "Outdoor Seating", "Card Accepted"],
-    hours: "9:00 AM – 11:00 PM",
-    phone: "+880 1700 000002",
-    description:
-      "Cozy plant-filled café known for cold brews, hand-crafted pastries and a quiet upstairs work corner.",
-    aiSummary:
-      "Great for solo work sessions, casual catch-ups, and dessert dates with a budget-friendly vibe.",
-    hiddenGem: true,
-    verified: true,
   },
   {
     id: "3",
