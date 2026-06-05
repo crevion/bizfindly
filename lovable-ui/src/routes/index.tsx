@@ -79,7 +79,7 @@ function Home() {
           <div>
             <span className="inline-flex items-center gap-2 rounded-full glass px-3 py-1.5 text-xs font-semibold">
               <Sparkles className="h-3.5 w-3.5 text-brand" />
-              AI-powered local discovery · Bangladesh
+              AI-powered Local discovery · Bangladesh
             </span>
             <h1 className="mt-5 font-display text-4xl font-extrabold leading-[1.05] tracking-tight md:text-6xl lg:text-7xl">
               Discover the best{" "}
