@@ -11,7 +11,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "AI-powered local discovery for restaurants, resorts and gyms in Bangladesh. Find places that match your mood, budget and vibe.",
+          "AI-powered Local discovery for restaurants, resorts and gyms in Bangladesh. Find places that match your mood, budget and vibe.",
       },
     ],
   }),
