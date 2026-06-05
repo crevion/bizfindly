@@ -175,6 +175,20 @@ function Dashboard() {
         <div className="space-y-6">
           <Section title="Quick actions">
             <div className="space-y-2">
+              {active.category === "restaurant" && (
+                <Link
+                  to="/dashboard/menu"
+                  className="flex w-full items-center gap-3 rounded-2xl border border-brand/40 bg-gradient-to-r from-brand/10 to-transparent p-3 text-left text-sm font-semibold transition hover:border-brand"
+                >
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl gradient-brand text-brand-foreground">
+                    <UtensilsCrossed className="h-4 w-4" />
+                  </span>
+                  Menu management
+                  <span className="ml-auto rounded-full bg-brand/15 px-2 py-0.5 text-[10px] font-bold uppercase text-brand">
+                    New
+                  </span>
+                </Link>
+              )}
               {[
                 { icon: ImagePlus, label: "Edit photos" },
                 { icon: Tag, label: "Create coupon" },
@@ -193,6 +207,7 @@ function Dashboard() {
               ))}
             </div>
           </Section>
+
 
           <Section title="Active offers">
             <div className="rounded-2xl border border-dashed border-border p-5 text-center">
