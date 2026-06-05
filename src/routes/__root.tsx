@@ -75,13 +75,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "BizFindly — AI-powered local discovery" },
+      { title: "BizFindly — AI-powered Local discovery" },
       {
         name: "description",
         content:
           "Discover the best restaurants, cafes and resorts in Bangladesh with AI-powered, mood-based recommendations.",
       },
-      { property: "og:title", content: "BizFindly — AI-powered local discovery" },
+      { property: "og:title", content: "BizFindly — AI-powered Local discovery" },
       {
         property: "og:description",
         content:
@@ -89,7 +89,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "BizFindly — AI-powered local discovery" },
+      { name: "twitter:title", content: "BizFindly — AI-powered Local discovery" },
       { name: "description", content: "Vibe Finder is an AI-powered app for discovering local restaurants, cafes, and resorts in Bangladesh." },
       { property: "og:description", content: "Vibe Finder is an AI-powered app for discovering local restaurants, cafes, and resorts in Bangladesh." },
       { name: "twitter:description", content: "Vibe Finder is an AI-powered app for discovering local restaurants, cafes, and resorts in Bangladesh." },

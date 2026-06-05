@@ -86,7 +86,7 @@ function Profile() {
       </div>
 
       <p className="mt-8 text-center text-xs text-muted-foreground">
-        BizFindly · AI-powered local discovery
+        BizFindly · AI-powered Local discovery
       </p>
     </div>
   );
