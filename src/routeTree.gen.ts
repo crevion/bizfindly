@@ -18,6 +18,7 @@ import { Route as ClaimBusinessRouteImport } from './routes/claim-business'
 import { Route as AiRouteImport } from './routes/ai'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlaceSlugRouteImport } from './routes/place.$slug'
+import { Route as DashboardMenuRouteImport } from './routes/dashboard.menu'
 import { Route as AdminVerificationsRouteImport } from './routes/admin.verifications'
 
 const SavedRoute = SavedRouteImport.update({
@@ -65,6 +66,11 @@ const PlaceSlugRoute = PlaceSlugRouteImport.update({
   path: '/place/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardMenuRoute = DashboardMenuRouteImport.update({
+  id: '/menu',
+  path: '/menu',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const AdminVerificationsRoute = AdminVerificationsRouteImport.update({
   id: '/admin/verifications',
   path: '/admin/verifications',
@@ -75,24 +81,26 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
   '/claim-business': typeof ClaimBusinessRoute
-  '/dashboard': typeof DashboardRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/discover': typeof DiscoverRoute
   '/list-business': typeof ListBusinessRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/admin/verifications': typeof AdminVerificationsRoute
+  '/dashboard/menu': typeof DashboardMenuRoute
   '/place/$slug': typeof PlaceSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
   '/claim-business': typeof ClaimBusinessRoute
-  '/dashboard': typeof DashboardRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/discover': typeof DiscoverRoute
   '/list-business': typeof ListBusinessRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/admin/verifications': typeof AdminVerificationsRoute
+  '/dashboard/menu': typeof DashboardMenuRoute
   '/place/$slug': typeof PlaceSlugRoute
 }
 export interface FileRoutesById {
@@ -100,12 +108,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
   '/claim-business': typeof ClaimBusinessRoute
-  '/dashboard': typeof DashboardRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/discover': typeof DiscoverRoute
   '/list-business': typeof ListBusinessRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/admin/verifications': typeof AdminVerificationsRoute
+  '/dashboard/menu': typeof DashboardMenuRoute
   '/place/$slug': typeof PlaceSlugRoute
 }
 export interface FileRouteTypes {
@@ -120,6 +129,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/saved'
     | '/admin/verifications'
+    | '/dashboard/menu'
     | '/place/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -132,6 +142,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/saved'
     | '/admin/verifications'
+    | '/dashboard/menu'
     | '/place/$slug'
   id:
     | '__root__'
@@ -144,6 +155,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/saved'
     | '/admin/verifications'
+    | '/dashboard/menu'
     | '/place/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -151,7 +163,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AiRoute: typeof AiRoute
   ClaimBusinessRoute: typeof ClaimBusinessRoute
-  DashboardRoute: typeof DashboardRoute
+  DashboardRoute: typeof DashboardRouteWithChildren
   DiscoverRoute: typeof DiscoverRoute
   ListBusinessRoute: typeof ListBusinessRoute
   ProfileRoute: typeof ProfileRoute
@@ -225,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlaceSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/menu': {
+      id: '/dashboard/menu'
+      path: '/menu'
+      fullPath: '/dashboard/menu'
+      preLoaderRoute: typeof DashboardMenuRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/admin/verifications': {
       id: '/admin/verifications'
       path: '/admin/verifications'
@@ -235,11 +254,23 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface DashboardRouteChildren {
+  DashboardMenuRoute: typeof DashboardMenuRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardMenuRoute: DashboardMenuRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiRoute: AiRoute,
   ClaimBusinessRoute: ClaimBusinessRoute,
-  DashboardRoute: DashboardRoute,
+  DashboardRoute: DashboardRouteWithChildren,
   DiscoverRoute: DiscoverRoute,
   ListBusinessRoute: ListBusinessRoute,
   ProfileRoute: ProfileRoute,

@@ -26,6 +26,7 @@ import { PlaceCard } from "@/components/PlaceCard";
 import { VerifiedBadge } from "@/components/verification/VerifiedBadge";
 import { getPlaceVerification } from "@/lib/verification";
 import { useAuth } from "@/lib/auth";
+import { PublicMenu } from "@/components/menu/PublicMenu";
 
 export const Route = createFileRoute("/place/$slug")({
   component: PlacePage,
@@ -281,29 +282,14 @@ function PlacePage() {
               </div>
             </section>
 
-            {/* Menu */}
-            {place.menu && (
+            {place.category === "restaurant" && (
               <section className="mt-10">
-                <h2 className="font-display text-2xl font-bold">Menu highlights</h2>
-                <div className="mt-4 space-y-6">
-                  {place.menu.map((cat) => (
-                    <div key={cat.category}>
-                      <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                        {cat.category}
-                      </h3>
-                      <div className="mt-2 divide-y divide-border rounded-2xl bg-card shadow-soft">
-                        {cat.items.map((item) => (
-                          <div key={item.name} className="flex items-center justify-between p-4">
-                            <span className="font-medium">{item.name}</span>
-                            <span className="font-semibold text-brand">{item.price}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <h2 className="font-display text-2xl font-bold">Menu</h2>
+                <PublicMenu restaurantId={place.id} fallback={place.menu} />
               </section>
             )}
+
+
 
             {/* Reviews */}
             <section className="mt-10">
