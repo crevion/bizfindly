@@ -26,6 +26,7 @@ import { PlaceCard } from "@/components/PlaceCard";
 import { VerifiedBadge } from "@/components/verification/VerifiedBadge";
 import { getPlaceVerification } from "@/lib/verification";
 import { useAuth } from "@/lib/auth";
+import { PublicMenu } from "@/components/menu/PublicMenu";
 
 export const Route = createFileRoute("/place/$slug")({
   component: PlacePage,
