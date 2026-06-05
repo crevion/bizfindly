@@ -10,6 +10,7 @@ import {
   Star,
   Tag,
   TrendingUp,
+  UtensilsCrossed,
 } from "lucide-react";
 import { CATEGORIES, loadListings, type ListingDraft } from "@/lib/listingCategories";
 import { useAuth } from "@/lib/auth";
