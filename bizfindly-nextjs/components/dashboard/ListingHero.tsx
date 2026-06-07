@@ -9,8 +9,10 @@ export function ListingHero({ active }: { active: ListingDraft }) {
   const cfg = active.category ? CATEGORIES[active.category] : null;
   const hero = Object.values(active.images).flat()[0] || cfg?.image;
 
-  const views = 1240 + (active.id ? active.id.length * 7 : 0);
+  const views = active.views ?? 1240 + (active.id ? active.id.length * 7 : 0);
   const saves = Math.round(views * 0.18);
+  const ratingValue = active.rating && active.rating > 0 ? active.rating.toFixed(1) : "—";
+  const ratingTrend = active.reviewCount ? `${active.reviewCount} reviews` : "New";
 
   return (
     <div className="border-border bg-card shadow-card overflow-hidden rounded-3xl border">
@@ -26,7 +28,7 @@ export function ListingHero({ active }: { active: ListingDraft }) {
       <div className="divide-border grid grid-cols-3 divide-x">
         <Stat icon={Eye} label="Views" value={views.toLocaleString()} trend="+12%" />
         <Stat icon={Heart} label="Saves" value={saves.toString()} trend="+8%" />
-        <Stat icon={Star} label="Rating" value="—" trend="New" />
+        <Stat icon={Star} label="Rating" value={ratingValue} trend={ratingTrend} />
       </div>
     </div>
   );

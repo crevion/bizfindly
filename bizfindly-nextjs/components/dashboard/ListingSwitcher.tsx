@@ -15,9 +15,9 @@ export function ListingSwitcher({
   if (listings.length <= 1) return null;
   return (
     <div className="no-scrollbar mt-6 flex gap-2 overflow-x-auto">
-      {listings.map((l) => (
+      {listings.map((l, i) => (
         <button
-          key={l.id}
+          key={l.slug ?? l.id ?? `listing-${i}`}
           onClick={() => l.id && onPick(l.id)}
           className={cn(
             "shrink-0 rounded-full border px-4 py-2 text-sm font-semibold",

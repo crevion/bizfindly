@@ -4,6 +4,13 @@ import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CategoryConfig, ListingDraft } from "@/types/listing";
 import { StepHeader } from "./fields";
+import { TaxonomyMultiSelect } from "./TaxonomyMultiSelect";
+
+const BUSINESS_TYPE_SLUG: Record<string, string> = {
+  restaurant: "restaurant",
+  resort: "resort",
+  gym: "gym",
+};
 
 export function FacilitiesStep({
   cfg,
@@ -18,6 +25,25 @@ export function FacilitiesStep({
     update({
       facilities: { ...draft.facilities, [key]: !draft.facilities[key] },
     });
+
+  if (cfg.id === "restaurant" || cfg.id === "resort") {
+    return (
+      <div className="space-y-6">
+        <StepHeader
+          kicker={`Step 4 · ${cfg.label}`}
+          title="What facilities do you offer?"
+          sub="Tap everything that applies — these power smart filters."
+        />
+        <TaxonomyMultiSelect
+          label="Facilities"
+          kind="facilities"
+          businessType={BUSINESS_TYPE_SLUG[cfg.id]}
+          selected={draft.facilityIds}
+          onChange={(ids) => update({ facilityIds: ids })}
+        />
+      </div>
+    );
+  }
 
   return (
     <div>

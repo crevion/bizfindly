@@ -5,6 +5,10 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import type { ListingDraft } from "@/types/listing";
 import { emptyDraft } from "@/content/listingCategories";
 
+function normalizeDraft(draft: Partial<ListingDraft> | undefined): ListingDraft {
+  return { ...emptyDraft(), ...(draft ?? {}) };
+}
+
 interface ListingState {
   draft: ListingDraft;
   listings: ListingDraft[];
@@ -58,6 +62,10 @@ export const useListingStore = create<ListingState>()(
         stepIdx: s.stepIdx,
       }),
       onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.draft = normalizeDraft(state.draft);
+          state.listings = (state.listings ?? []).map(normalizeDraft);
+        }
         state?.setHydrated(true);
       },
     },

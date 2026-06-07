@@ -61,4 +61,17 @@ export interface ListingDraft {
   description: string;
   images: Record<string, string[]>;
   createdAt?: string;
+  slug?: string;
+  website?: string;
+  views?: number;
+  rating?: number;
+  reviewCount?: number;
+  verified?: boolean;
+  remote?: boolean;
+  facilityIds: number[];
+  tagIds: number[];
+  cuisineIds: number[];
+  occasionIds: number[];
+  vibeIds: number[];
+  groupTypeIds: number[];
 }

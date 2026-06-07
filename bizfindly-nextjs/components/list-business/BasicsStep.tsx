@@ -91,6 +91,15 @@ export function BasicsStep({
             onChange={(e) => update({ mapUrl: e.target.value })}
           />
         </Field>
+
+        <Field label="Website" hint="Optional">
+          <input
+            className={inputCls}
+            placeholder="https://your-business.com"
+            value={draft.website || ""}
+            onChange={(e) => update({ website: e.target.value })}
+          />
+        </Field>
       </div>
     </div>
   );
