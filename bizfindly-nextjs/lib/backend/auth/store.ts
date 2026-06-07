@@ -80,8 +80,7 @@ export const useAuthStore = create<AuthState>()(
         if (get().token) {
           try {
             await authApi.logout();
-          } catch {
-          }
+          } catch {}
         }
         clearToken();
         set({ token: null, user: null });

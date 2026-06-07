@@ -15,8 +15,7 @@ export function CouponCard({ placeName }: { placeName: string }) {
       await navigator.clipboard.writeText("BIZ10");
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
-    } catch {
-    }
+    } catch {}
   };
 
   return (

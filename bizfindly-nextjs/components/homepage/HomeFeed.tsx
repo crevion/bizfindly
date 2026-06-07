@@ -48,9 +48,7 @@ export function HomeFeed() {
 
   const all = [...restaurants, ...resorts];
   const trending = all.filter((p) => p.trending || p.rating >= 4.7).slice(0, 10);
-  const hidden = all
-    .filter((p) => !p.trending && p.rating >= 4.5)
-    .slice(0, 8);
+  const hidden = all.filter((p) => !p.trending && p.rating >= 4.5).slice(0, 8);
 
   if (loading) {
     return (
@@ -58,7 +56,10 @@ export function HomeFeed() {
         <HomeSection title="🔥 Trending now" subtitle="What everyone's saving this week">
           <SkeletonRow />
         </HomeSection>
-        <HomeSection title="Popular restaurants" subtitle="Rooftops, fine dining and family favourites">
+        <HomeSection
+          title="Popular restaurants"
+          subtitle="Rooftops, fine dining and family favourites"
+        >
           <SkeletonRow />
         </HomeSection>
       </>

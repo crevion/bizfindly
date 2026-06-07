@@ -20,8 +20,7 @@ export const authApi = {
   login: (payload: LoginPayload) =>
     apiClient<TokenResponse>("/auth/login/", { method: "POST", body: payload }),
 
-  logout: () =>
-    apiClient<void>("/auth/logout/", { method: "POST", headers: authHeader() }),
+  logout: () => apiClient<void>("/auth/logout/", { method: "POST", headers: authHeader() }),
 
   forgotPassword: (phone: string) =>
     apiClient<MessageResponse>("/auth/forgot-password/", { method: "POST", body: { phone } }),

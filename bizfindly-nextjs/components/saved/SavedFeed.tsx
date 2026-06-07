@@ -13,10 +13,7 @@ export function SavedFeed() {
 
   useEffect(() => {
     let active = true;
-    Promise.all([
-      listPlaces("restaurant").catch(() => []),
-      listPlaces("resort").catch(() => []),
-    ])
+    Promise.all([listPlaces("restaurant").catch(() => []), listPlaces("resort").catch(() => [])])
       .then(([restaurants, resorts]) => {
         if (!active) return;
         setSaved([...restaurants.slice(0, 2), ...resorts.slice(0, 1)]);

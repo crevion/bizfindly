@@ -90,7 +90,8 @@ export function ReviewList({ reviews }: { reviews: PlaceReview[] }) {
     <section className="mt-10">
       <div className="flex items-center justify-between">
         <h2 className="font-display text-2xl font-bold">
-          Reviews{reviews.length > 0 && <span className="text-muted-foreground"> ({reviews.length})</span>}
+          Reviews
+          {reviews.length > 0 && <span className="text-muted-foreground"> ({reviews.length})</span>}
         </h2>
         <button className="bg-foreground text-background rounded-full px-4 py-2 text-sm font-semibold">
           Write a review

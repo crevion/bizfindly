@@ -172,13 +172,7 @@ export function SubmitButton({
   );
 }
 
-export function FormFeedback({
-  error,
-  info,
-}: {
-  error?: string | null;
-  info?: string | null;
-}) {
+export function FormFeedback({ error, info }: { error?: string | null; info?: string | null }) {
   if (error) {
     return (
       <div className="border-destructive/30 bg-destructive/10 text-destructive rounded-xl border px-3 py-2 text-xs font-medium">

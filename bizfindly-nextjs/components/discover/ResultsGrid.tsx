@@ -52,10 +52,7 @@ export function ResultsGrid({
       {loading ? (
         <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="bg-card ring-border/40 h-72 animate-pulse rounded-3xl ring-1"
-            />
+            <div key={i} className="bg-card ring-border/40 h-72 animate-pulse rounded-3xl ring-1" />
           ))}
         </div>
       ) : view === "map" ? (
