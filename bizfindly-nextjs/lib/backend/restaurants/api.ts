@@ -5,6 +5,7 @@ import type {
   MenuCategory,
   MenuParams,
   RestaurantDetail,
+  RestaurantInput,
   RestaurantListItem,
   RestaurantListParams,
 } from "./types";
@@ -18,10 +19,9 @@ export const restaurantsApi = {
   menu: (slug: string, params: MenuParams = {}) =>
     apiClient<Paginated<MenuCategory>>(`/restaurants/${slug}/menu/${buildQuery(params)}`),
 
-  listMine: () =>
-    apiClient<RestaurantDetail[]>("/owner/restaurants/", { headers: authHeader() }),
+  listMine: () => apiClient<RestaurantDetail[]>("/owner/restaurants/", { headers: authHeader() }),
 
-  create: (data: FormData) =>
+  create: (data: FormData | RestaurantInput) =>
     apiClient<RestaurantDetail>("/owner/restaurants/", {
       method: "POST",
       body: data,
@@ -45,6 +45,11 @@ export const restaurantsApi = {
   remove: (slug: string) =>
     apiClient<void>(`/owner/restaurants/${slug}/`, {
       method: "DELETE",
+      headers: authHeader(),
+    }),
+
+  listGalleryImages: (slug: string) =>
+    apiClient<GalleryImage[]>(`/owner/restaurants/${slug}/gallery/`, {
       headers: authHeader(),
     }),
 

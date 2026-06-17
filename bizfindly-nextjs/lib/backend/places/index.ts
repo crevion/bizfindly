@@ -5,4 +5,10 @@ export {
   mapResortDetail,
   mapReview,
 } from "./map";
-export { listPlaces, getPlace, getPlaceReviews, type PlaceListParams } from "./service";
+export {
+  listPlaces,
+  getPlace,
+  getPlaceReviews,
+  type PlaceListParams,
+  type BudgetTier,
+} from "./service";

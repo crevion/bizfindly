@@ -50,7 +50,11 @@ export async function apiClient<T = unknown>(
   }
 
   if (!res.ok) {
-    throw new ApiError(extractErrorMessage(data, `Request failed (${res.status})`), res.status, data);
+    throw new ApiError(
+      extractErrorMessage(data, `Request failed (${res.status})`),
+      res.status,
+      data,
+    );
   }
 
   return data as T;

@@ -14,8 +14,12 @@ function toNumber(value: string | number | null | undefined): number {
   return Number.isFinite(n) ? n : 0;
 }
 
-function restaurantPriceLevel(min: number | null, max: number | null): PriceLevel {
-  const ref = max ?? min ?? 0;
+type PriceValue = number | string | null | undefined;
+
+function restaurantPriceLevel(minRaw: PriceValue, maxRaw: PriceValue): PriceLevel {
+  const min = toNumber(minRaw);
+  const max = toNumber(maxRaw);
+  const ref = max || min || 0;
   if (ref <= 0) return 2;
   if (ref <= 400) return 1;
   if (ref <= 900) return 2;
@@ -35,7 +39,9 @@ function priceText(level: PriceLevel, range: string): string {
   return `${"৳".repeat(level)} • ${range}`;
 }
 
-function restaurantRange(min: number | null, max: number | null): string {
+function restaurantRange(minRaw: PriceValue, maxRaw: PriceValue): string {
+  const min = toNumber(minRaw);
+  const max = toNumber(maxRaw);
   if (min && max) return `${min}–${max} per person`;
   if (max) return `up to ${max} per person`;
   if (min) return `from ${min} per person`;
@@ -70,9 +76,7 @@ export function mapRestaurantListItem(r: RestaurantListItem): Place {
 
 export function mapRestaurantDetail(d: RestaurantDetail, menu?: MenuCategory[]): Place {
   const level = restaurantPriceLevel(d.price_min, d.price_max);
-  const gallery = d.gallery.length
-    ? d.gallery.map((g) => g.image)
-    : [FALLBACK_IMAGE];
+  const gallery = d.gallery.length ? d.gallery.map((g) => g.image) : [FALLBACK_IMAGE];
   return {
     id: d.slug,
     slug: d.slug,

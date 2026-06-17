@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuthStore } from "@/lib/backend/auth";
+import { ApiError } from "@/lib/backend/api";
+import { createListingFromDraft } from "@/lib/backend/places/createListing";
 import { useListingStore } from "@/store/useListingStore";
 import { useVerificationStore } from "@/store/useVerificationStore";
 import { LISTING_STEPS } from "@/content/listingSteps";
@@ -65,13 +67,20 @@ export function useListingWizard() {
     setPublishState("publishing");
     setPublishError(null);
     try {
-      await new Promise((r) => setTimeout(r, 900));
+      let slug: string | undefined;
+      if (draft.category === "restaurant" || draft.category === "resort") {
+        const created = await createListingFromDraft(draft);
+        slug = created?.slug;
+      } else {
+        await new Promise((r) => setTimeout(r, 700));
+      }
+
       const final = publishListing();
-      setPublished(final);
+      setPublished({ ...final, slug: slug ?? final.slug });
       if (user && final.id) {
         try {
           submitClaim({
-            placeId: final.id,
+            placeId: slug ?? final.id,
             placeName: final.name,
             ownerId: user.id,
             ownerName: user.name,
@@ -82,14 +91,17 @@ export function useListingWizard() {
             documents: [],
             social: {},
           });
-        } catch {
-        }
+        } catch {}
       }
-      setPublishedId(final.id ?? null);
+      setPublishedId(slug ?? final.id ?? null);
       setPublishState("done");
     } catch (e) {
       console.error("publish failed", e);
-      setPublishError("Something went wrong while submitting your listing. Please try again.");
+      setPublishError(
+        e instanceof ApiError
+          ? e.message
+          : "Something went wrong while submitting your listing. Please try again.",
+      );
       setPublishState("error");
     }
   };

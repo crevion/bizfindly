@@ -3,9 +3,15 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import type { Place } from "@/types/place";
-import { listPlaces } from "@/lib/backend/places";
+import { listPlaces, type BudgetTier } from "@/lib/backend/places";
 import { PRICE_BOUNDS, type DiscoverCategory, type SortOption } from "@/content/discoverFilters";
 import { matchesQuickFilter, priceFromRange } from "@/lib/discoverFilters";
+
+export type TaxonomyDimension = "cuisine" | "vibe" | "occasion" | "groupType" | "tag" | "facility";
+
+export type TaxonomyFilters = Partial<Record<TaxonomyDimension, string>>;
+
+const EMPTY_TAX: TaxonomyFilters = {};
 
 export function useDiscoverState() {
   const searchParams = useSearchParams();
@@ -26,6 +32,8 @@ export function useDiscoverState() {
   const [minRating, setMinRating] = useState(0);
   const bounds = PRICE_BOUNDS[cat];
   const [priceRange, setPriceRange] = useState<[number, number]>([bounds[0], bounds[1]]);
+  const [taxFilters, setTaxFilters] = useState<TaxonomyFilters>(EMPTY_TAX);
+  const [budgetTier, setBudgetTier] = useState<BudgetTier | undefined>(undefined);
 
   useEffect(() => {
     if (catParam === "restaurant" || catParam === "resort" || catParam === "gym") {
@@ -39,15 +47,43 @@ export function useDiscoverState() {
     const b = PRICE_BOUNDS[cat];
     setPriceRange([b[0], b[1]]);
     setActiveQuick([]);
+    setTaxFilters(EMPTY_TAX);
+    setBudgetTier(undefined);
   }, [cat]);
+
+  const setTaxFilter = (dim: TaxonomyDimension, slug: string | undefined) =>
+    setTaxFilters((prev) => {
+      const next = { ...prev };
+      if (!slug || prev[dim] === slug) delete next[dim];
+      else next[dim] = slug;
+      return next;
+    });
+
+  const [debouncedQuery, setDebouncedQuery] = useState(initialQ);
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedQuery(query), 350);
+    return () => clearTimeout(id);
+  }, [query]);
 
   const [items, setItems] = useState<Place[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const taxKey = JSON.stringify(taxFilters);
+
   useEffect(() => {
     let active = true;
     setLoading(true);
-    listPlaces(cat, { area })
+    listPlaces(cat, {
+      area,
+      search: debouncedQuery.trim() || undefined,
+      cuisine: taxFilters.cuisine,
+      vibe: taxFilters.vibe,
+      occasion: taxFilters.occasion,
+      groupType: taxFilters.groupType,
+      tag: taxFilters.tag,
+      facility: taxFilters.facility,
+      budgetTier,
+    })
       .then((res) => {
         if (active) setItems(res);
       })
@@ -60,7 +96,8 @@ export function useDiscoverState() {
     return () => {
       active = false;
     };
-  }, [cat, area]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cat, area, debouncedQuery, taxKey, budgetTier]);
 
   const baseList = items;
 
@@ -100,6 +137,8 @@ export function useDiscoverState() {
 
   const activeFilterCount =
     activeQuick.length +
+    Object.keys(taxFilters).length +
+    (budgetTier ? 1 : 0) +
     (verifiedOnly ? 1 : 0) +
     (openNow ? 1 : 0) +
     (minRating > 0 ? 1 : 0) +
@@ -116,6 +155,8 @@ export function useDiscoverState() {
     setOpenNow(false);
     setMinRating(0);
     setPriceRange([bounds[0], bounds[1]]);
+    setTaxFilters(EMPTY_TAX);
+    setBudgetTier(undefined);
   };
 
   return {
@@ -144,6 +185,10 @@ export function useDiscoverState() {
     setMinRating,
     priceRange,
     setPriceRange,
+    taxFilters,
+    setTaxFilter,
+    budgetTier,
+    setBudgetTier,
     bounds,
     baseList,
     filtered,

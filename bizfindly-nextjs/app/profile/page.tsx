@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ChevronRight, Heart, History, LogOut, MapPin, Settings, Star, Store } from "lucide-react";
 import { useAuthStore } from "@/lib/backend/auth";
 import { ChangePasswordForm } from "@/components/auth/ChangePasswordForm";
+import { OwnerProfileSection } from "@/components/profile/OwnerProfileSection";
 
 const items = [
   { label: "Saved places", icon: Heart, to: "/saved" },
@@ -87,6 +88,8 @@ export default function ProfilePage() {
           </Link>
         ))}
       </div>
+
+      {user && <OwnerProfileSection />}
 
       {user && <ChangePasswordForm />}
 

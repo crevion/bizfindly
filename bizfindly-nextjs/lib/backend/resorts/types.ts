@@ -57,6 +57,7 @@ export interface ResortListParams {
   city?: string;
   tag?: string;
   facility?: string;
+  search?: string;
   is_trending?: boolean;
   page?: number;
   page_size?: number;

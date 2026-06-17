@@ -144,4 +144,11 @@ export const emptyDraft = (): ListingDraft => ({
   tags: [],
   description: "",
   images: {},
+  website: "",
+  facilityIds: [],
+  tagIds: [],
+  cuisineIds: [],
+  occasionIds: [],
+  vibeIds: [],
+  groupTypeIds: [],
 });

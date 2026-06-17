@@ -47,8 +47,14 @@ export default function ListBusinessPage() {
 
   const cfg = draft.category ? CATEGORIES[draft.category] : null;
 
-  if (publishState === "done" && cfg && published) {
-    return <SuccessScreen draft={published} cfg={cfg} listingId={publishedId} />;
+  if (publishState === "done" && published?.category) {
+    return (
+      <SuccessScreen
+        draft={published}
+        cfg={CATEGORIES[published.category]}
+        listingId={publishedId}
+      />
+    );
   }
 
   return (

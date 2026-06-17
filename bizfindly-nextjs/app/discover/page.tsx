@@ -90,6 +90,10 @@ function DiscoverInner() {
           setMinRating={s.setMinRating}
           priceRange={s.priceRange}
           setPriceRange={s.setPriceRange}
+          taxFilters={s.taxFilters}
+          setTaxFilter={s.setTaxFilter}
+          budgetTier={s.budgetTier}
+          setBudgetTier={s.setBudgetTier}
           sort={s.sort}
           setSort={s.setSort}
           onClose={() => s.setShowFilters(false)}

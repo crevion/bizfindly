@@ -10,8 +10,24 @@ import {
   type DiscoverCategory,
   type SortOption,
 } from "@/content/discoverFilters";
+import type { BudgetTier } from "@/lib/backend/places";
+import type { TaxonomyDimension, TaxonomyFilters } from "@/hooks/useDiscoverState";
 import { DualRangeSlider } from "./DualRangeSlider";
+import { TaxonomyChips } from "./TaxonomyChips";
 import { ToggleCard } from "./ToggleCard";
+
+const BUDGET_TIERS: { value: BudgetTier; label: string }[] = [
+  { value: "budget", label: "Budget" },
+  { value: "mid_range", label: "Mid-range" },
+  { value: "premium", label: "Premium" },
+  { value: "luxury", label: "Luxury" },
+];
+
+const BUSINESS_TYPE_SLUG: Record<DiscoverCategory, string> = {
+  restaurant: "restaurant",
+  resort: "resort",
+  gym: "gym",
+};
 
 export function FilterModal(props: {
   cat: DiscoverCategory;
@@ -27,6 +43,10 @@ export function FilterModal(props: {
   setMinRating: (n: number) => void;
   priceRange: [number, number];
   setPriceRange: (r: [number, number]) => void;
+  taxFilters: TaxonomyFilters;
+  setTaxFilter: (dim: TaxonomyDimension, slug: string | undefined) => void;
+  budgetTier: BudgetTier | undefined;
+  setBudgetTier: (t: BudgetTier | undefined) => void;
   sort: SortOption;
   setSort: (s: SortOption) => void;
   onClose: () => void;
@@ -35,6 +55,7 @@ export function FilterModal(props: {
 }) {
   const bounds = PRICE_BOUNDS[props.cat];
   const [min, max] = props.priceRange;
+  const businessType = BUSINESS_TYPE_SLUG[props.cat];
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center md:items-center">
       <div
@@ -157,6 +178,78 @@ export function FilterModal(props: {
               onChange={() => props.setOpenNow(!props.openNow)}
             />
           </div>
+
+          {props.cat === "restaurant" && (
+            <>
+              <TaxonomyChips
+                label="Cuisine"
+                kind="cuisines"
+                selected={props.taxFilters.cuisine}
+                onSelect={(slug) => props.setTaxFilter("cuisine", slug)}
+              />
+              <TaxonomyChips
+                label="Vibe"
+                kind="vibes"
+                selected={props.taxFilters.vibe}
+                onSelect={(slug) => props.setTaxFilter("vibe", slug)}
+              />
+              <TaxonomyChips
+                label="Occasion"
+                kind="occasions"
+                selected={props.taxFilters.occasion}
+                onSelect={(slug) => props.setTaxFilter("occasion", slug)}
+              />
+              <TaxonomyChips
+                label="Group type"
+                kind="groupTypes"
+                selected={props.taxFilters.groupType}
+                onSelect={(slug) => props.setTaxFilter("groupType", slug)}
+              />
+              <div>
+                <p className="text-muted-foreground mb-2 text-xs font-bold tracking-wider uppercase">
+                  Budget
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {BUDGET_TIERS.map((t) => {
+                    const active = props.budgetTier === t.value;
+                    return (
+                      <button
+                        key={t.value}
+                        onClick={() => props.setBudgetTier(active ? undefined : t.value)}
+                        className={cn(
+                          "rounded-full border px-3.5 py-1.5 text-xs font-semibold transition",
+                          active
+                            ? "border-brand bg-brand text-brand-foreground"
+                            : "border-border hover:bg-muted",
+                        )}
+                      >
+                        {t.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
+          )}
+
+          {props.cat === "resort" && (
+            <>
+              <TaxonomyChips
+                label="Tags"
+                kind="tags"
+                businessType={businessType}
+                selected={props.taxFilters.tag}
+                onSelect={(slug) => props.setTaxFilter("tag", slug)}
+              />
+              <TaxonomyChips
+                label="Facilities"
+                kind="facilities"
+                businessType={businessType}
+                selected={props.taxFilters.facility}
+                onSelect={(slug) => props.setTaxFilter("facility", slug)}
+              />
+            </>
+          )}
 
           <div>
             <p className="text-muted-foreground mb-2 text-xs font-bold tracking-wider uppercase">

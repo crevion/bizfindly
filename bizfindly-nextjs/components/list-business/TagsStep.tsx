@@ -4,6 +4,13 @@ import { Sparkles, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CategoryConfig, ListingDraft } from "@/types/listing";
 import { StepHeader } from "./fields";
+import { TaxonomyMultiSelect } from "./TaxonomyMultiSelect";
+
+const BUSINESS_TYPE_SLUG: Record<string, string> = {
+  restaurant: "restaurant",
+  resort: "resort",
+  gym: "gym",
+};
 
 function buildAiSuggestions(cfg: CategoryConfig, draft: ListingDraft): string[] {
   const suggestions = new Set<string>();
@@ -47,6 +54,53 @@ export function TagsStep({
     const merged = Array.from(new Set([...draft.tags, ...buildAiSuggestions(cfg, draft)]));
     update({ tags: merged });
   };
+
+  if (cfg.id === "restaurant" || cfg.id === "resort") {
+    return (
+      <div className="space-y-6">
+        <StepHeader
+          kicker={`Step 5 · ${cfg.label}`}
+          title="Tags & vibe"
+          sub="Help us match you with the right people."
+        />
+        <TaxonomyMultiSelect
+          label="Tags"
+          kind="tags"
+          businessType={BUSINESS_TYPE_SLUG[cfg.id]}
+          selected={draft.tagIds}
+          onChange={(ids) => update({ tagIds: ids })}
+        />
+        {cfg.id === "restaurant" && (
+          <>
+            <TaxonomyMultiSelect
+              label="Cuisines"
+              kind="cuisines"
+              selected={draft.cuisineIds}
+              onChange={(ids) => update({ cuisineIds: ids })}
+            />
+            <TaxonomyMultiSelect
+              label="Vibes"
+              kind="vibes"
+              selected={draft.vibeIds}
+              onChange={(ids) => update({ vibeIds: ids })}
+            />
+            <TaxonomyMultiSelect
+              label="Occasions"
+              kind="occasions"
+              selected={draft.occasionIds}
+              onChange={(ids) => update({ occasionIds: ids })}
+            />
+            <TaxonomyMultiSelect
+              label="Group types"
+              kind="groupTypes"
+              selected={draft.groupTypeIds}
+              onChange={(ids) => update({ groupTypeIds: ids })}
+            />
+          </>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div>
