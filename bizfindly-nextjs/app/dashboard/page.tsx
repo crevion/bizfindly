@@ -24,6 +24,8 @@ export default function DashboardPage() {
   const [remoteListings, setRemoteListings] = useState<ListingDraft[]>([]);
   const [remoteLoading, setRemoteLoading] = useState(true);
 
+  console.log({ remoteListings });
+
   useEffect(() => {
     if (!user) return;
     let active = true;
