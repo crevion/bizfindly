@@ -221,7 +221,7 @@ export function removeFilter(f: AiFilters, key: string): AiFilters {
   const n: AiFilters = { ...f, facilities: [...f.facilities], tags: [...f.tags] };
   if (key.startsWith("tag:")) n.tags = n.tags.filter((t) => t !== key.slice(4));
   else if (key.startsWith("fac:")) n.facilities = n.facilities.filter((t) => t !== key.slice(4));
-  else delete (n as Record<string, unknown>)[key];
+  else delete (n as unknown as Record<string, unknown>)[key];
   return n;
 }
 
