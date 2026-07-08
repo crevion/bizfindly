@@ -74,9 +74,11 @@ function AiFinder() {
   const chips = describeFilters(filters);
 
   const startVoice = () => {
-    const SR: typeof window.SpeechRecognition | undefined =
-      (window as Window & { SpeechRecognition?: typeof window.SpeechRecognition; webkitSpeechRecognition?: typeof window.SpeechRecognition }).SpeechRecognition ??
-      (window as Window & { SpeechRecognition?: typeof window.SpeechRecognition; webkitSpeechRecognition?: typeof window.SpeechRecognition }).webkitSpeechRecognition;
+    const w = window as unknown as {
+      SpeechRecognition?: new () => SpeechRecognitionLike;
+      webkitSpeechRecognition?: new () => SpeechRecognitionLike;
+    };
+    const SR = w.SpeechRecognition ?? w.webkitSpeechRecognition;
     if (!SR) {
       alert("Voice search isn't supported in this browser.");
       return;
@@ -87,7 +89,7 @@ function AiFinder() {
     rec.onstart = () => setListening(true);
     rec.onerror = () => setListening(false);
     rec.onend = () => setListening(false);
-    rec.onresult = (e: SpeechRecognitionEvent) => {
+    rec.onresult = (e) => {
       const text = e.results[0]?.[0]?.transcript ?? "";
       if (text) runQuery(text);
     };
