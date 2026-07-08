@@ -654,6 +654,3 @@ interface SpeechRecognitionLike {
     | ((e: { results: { [i: number]: { [j: number]: { transcript: string } } } }) => void)
     | null;
 }
-
-  }
-}
