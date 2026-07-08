@@ -641,23 +641,19 @@ function EmptyResults({
   );
 }
 
-/* -------------------- SpeechRecognition types (minimal) -------------------- */
-declare global {
-  interface Window {
-    SpeechRecognition: new () => SpeechRecognitionInstance;
-    webkitSpeechRecognition: new () => SpeechRecognitionInstance;
-  }
-  interface SpeechRecognitionInstance extends EventTarget {
-    lang: string;
-    interimResults: boolean;
-    start(): void;
-    stop(): void;
-    onstart: (() => void) | null;
-    onend: (() => void) | null;
-    onerror: (() => void) | null;
-    onresult: ((e: SpeechRecognitionEvent) => void) | null;
-  }
-  interface SpeechRecognitionEvent extends Event {
-    results: { [index: number]: { [index: number]: { transcript: string } } };
+/* -------------------- SpeechRecognition (minimal shape) -------------------- */
+interface SpeechRecognitionLike {
+  lang: string;
+  interimResults: boolean;
+  start(): void;
+  stop(): void;
+  onstart: (() => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+  onresult:
+    | ((e: { results: { [i: number]: { [j: number]: { transcript: string } } } }) => void)
+    | null;
+}
+
   }
 }
