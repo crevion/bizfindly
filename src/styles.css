@@ -63,10 +63,10 @@
   --primary: oklch(0.22 0.012 60);
   --primary-foreground: oklch(0.985 0.012 80);
 
-  /* Warm orange brand */
-  --brand: oklch(0.72 0.18 45);
+  /* Vibrant #FF5A1F brand */
+  --brand: oklch(0.66 0.22 39);
   --brand-foreground: oklch(0.99 0 0);
-  --brand-soft: oklch(0.95 0.05 60);
+  --brand-soft: oklch(0.96 0.045 55);
 
   --secondary: oklch(0.95 0.012 70);
   --secondary-foreground: oklch(0.22 0.012 60);
