@@ -63,10 +63,10 @@
   --primary: oklch(0.22 0.012 60);
   --primary-foreground: oklch(0.985 0.012 80);
 
-  /* Warm orange brand */
-  --brand: oklch(0.72 0.18 45);
+  /* Vibrant #FF5A1F brand */
+  --brand: oklch(0.66 0.22 39);
   --brand-foreground: oklch(0.99 0 0);
-  --brand-soft: oklch(0.95 0.05 60);
+  --brand-soft: oklch(0.96 0.045 55);
 
   --secondary: oklch(0.95 0.012 70);
   --secondary-foreground: oklch(0.22 0.012 60);
@@ -78,7 +78,7 @@
   --destructive-foreground: oklch(0.99 0 0);
   --border: oklch(0.9 0.012 70);
   --input: oklch(0.9 0.012 70);
-  --ring: oklch(0.72 0.18 45);
+  --ring: oklch(0.66 0.22 39);
 
   --chart-1: oklch(0.72 0.18 45);
   --chart-2: oklch(0.65 0.13 180);
@@ -179,11 +179,11 @@
   }
 
   .gradient-brand {
-    background-image: linear-gradient(135deg, oklch(0.78 0.17 55), oklch(0.68 0.2 35));
+    background-image: linear-gradient(135deg, oklch(0.72 0.22 48), oklch(0.62 0.23 32));
   }
 
   .text-gradient-brand {
-    background-image: linear-gradient(135deg, oklch(0.72 0.18 45), oklch(0.55 0.22 25));
+    background-image: linear-gradient(135deg, oklch(0.68 0.22 42), oklch(0.55 0.24 25));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
