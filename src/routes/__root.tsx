@@ -142,9 +142,11 @@ function RootComponent() {
           <main className="flex-1 pb-24 md:pb-0">
             <Outlet />
           </main>
+          {!isAi && !isFullscreen && <Footer />}
           {!isAi && !isFullscreen && <MobileNav />}
         </div>
       </AuthProvider>
     </QueryClientProvider>
   );
 }
+
