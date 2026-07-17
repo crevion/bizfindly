@@ -47,17 +47,18 @@ function Home() {
               <GlobalSearchHero />
             </div>
 
-            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs font-medium text-muted-foreground md:text-sm">
-              <div className="inline-flex items-center gap-1.5">
+            <div className="mt-8 flex flex-wrap items-center gap-2 text-xs font-semibold md:text-sm">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 shadow-soft">
                 <BadgeCheck className="h-4 w-4 text-info" /> 2,400+ verified
-              </div>
-              <div className="inline-flex items-center gap-1.5">
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 shadow-soft">
                 <ShieldCheck className="h-4 w-4 text-success" /> Owner claimed
-              </div>
-              <div className="inline-flex items-center gap-1.5">
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 shadow-soft">
                 <Sparkles className="h-4 w-4 text-brand" /> Real reviews
-              </div>
+              </span>
             </div>
+
           </div>
 
           {/* Animated vertical gallery */}
