@@ -11,7 +11,9 @@ import {
 import appCss from "../styles.css?url";
 import { Header } from "@/components/layout/Header";
 import { MobileNav } from "@/components/layout/MobileNav";
+import { Footer } from "@/components/layout/Footer";
 import { AuthProvider } from "@/lib/auth";
+
 
 function NotFoundComponent() {
   return (
@@ -140,9 +142,11 @@ function RootComponent() {
           <main className="flex-1 pb-24 md:pb-0">
             <Outlet />
           </main>
+          {!isAi && !isFullscreen && <Footer />}
           {!isAi && !isFullscreen && <MobileNav />}
         </div>
       </AuthProvider>
     </QueryClientProvider>
   );
 }
+
