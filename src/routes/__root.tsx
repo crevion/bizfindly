@@ -11,7 +11,9 @@ import {
 import appCss from "../styles.css?url";
 import { Header } from "@/components/layout/Header";
 import { MobileNav } from "@/components/layout/MobileNav";
+import { Footer } from "@/components/layout/Footer";
 import { AuthProvider } from "@/lib/auth";
+
 
 function NotFoundComponent() {
   return (
