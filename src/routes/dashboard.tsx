@@ -15,6 +15,7 @@ import {
 import { CATEGORIES, loadListings, type ListingDraft } from "@/lib/listingCategories";
 import { useAuth } from "@/lib/auth";
 import { AuthGate } from "@/components/auth/AuthGate";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
 export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
