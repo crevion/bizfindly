@@ -19,6 +19,7 @@ import {
   type VerificationStatus,
 } from "@/lib/verification";
 import { VerifiedBadge } from "@/components/verification/VerifiedBadge";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
 export const Route = createFileRoute("/admin/verifications")({
   component: AdminVerifications,
@@ -56,7 +57,8 @@ function AdminVerifications() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-12">
+    <DashboardShell variant="admin">
+    <div className="mx-auto max-w-6xl px-4 py-8 md:px-8 md:py-12">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="text-xs font-bold uppercase tracking-wider text-sky-600">Admin tools</div>
@@ -258,6 +260,7 @@ function AdminVerifications() {
         </div>
       )}
     </div>
+    </DashboardShell>
   );
 }
 

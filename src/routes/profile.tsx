@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronRight, Heart, History, LogOut, MapPin, Settings, Star, Store } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
 export const Route = createFileRoute("/profile")({
   component: Profile,
@@ -20,6 +21,7 @@ function Profile() {
   const initial = (user?.name || "G").charAt(0).toUpperCase();
 
   return (
+    <DashboardShell variant="user">
     <div className="mx-auto max-w-3xl px-4 py-8 md:px-8 md:py-12">
       <div className="rounded-3xl gradient-brand p-6 text-brand-foreground shadow-glow md:p-8">
         <div className="flex items-center gap-4">
@@ -89,5 +91,6 @@ function Profile() {
         BizFindly · AI-powered Local discovery
       </p>
     </div>
+    </DashboardShell>
   );
 }
