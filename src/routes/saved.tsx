@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Heart } from "lucide-react";
 import { PlaceCard } from "@/components/PlaceCard";
 import { places } from "@/lib/mockData";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
 export const Route = createFileRoute("/saved")({
   component: Saved,
@@ -12,7 +13,8 @@ function Saved() {
   const saved = places.slice(0, 3); // mock
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-12">
+    <DashboardShell variant="user">
+    <div className="mx-auto max-w-6xl px-4 py-8 md:px-8 md:py-12">
       <div className="flex items-end justify-between">
         <div>
           <h1 className="font-display text-3xl font-bold md:text-4xl">Your saved places</h1>
@@ -37,5 +39,6 @@ function Saved() {
         </div>
       )}
     </div>
+    </DashboardShell>
   );
 }

@@ -13,6 +13,7 @@ import { Header } from "@/components/layout/Header";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { Footer } from "@/components/layout/Footer";
 import { AuthProvider } from "@/lib/auth";
+import { isDashboardRoute } from "@/components/dashboard/DashboardShell";
 
 
 function NotFoundComponent() {
@@ -133,16 +134,18 @@ function RootComponent() {
   const pathname = useRouter().state.location.pathname;
   const isAi = pathname.startsWith("/ai");
   const isFullscreen = pathname.startsWith("/list-business");
+  const isDashboard = isDashboardRoute(pathname);
+  const hideChrome = isAi || isFullscreen || isDashboard;
 
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <div className="flex min-h-screen flex-col">
-          {!isAi && !isFullscreen && <Header />}
+          {!hideChrome && <Header />}
           <main className="flex-1 pb-24 md:pb-0">
             <Outlet />
           </main>
-          {!isAi && !isFullscreen && <Footer />}
+          {!hideChrome && <Footer />}
           {!isAi && !isFullscreen && <MobileNav />}
         </div>
       </AuthProvider>

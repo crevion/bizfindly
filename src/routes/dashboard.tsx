@@ -15,6 +15,7 @@ import {
 import { CATEGORIES, loadListings, type ListingDraft } from "@/lib/listingCategories";
 import { useAuth } from "@/lib/auth";
 import { AuthGate } from "@/components/auth/AuthGate";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
 export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
@@ -47,21 +48,23 @@ function Dashboard() {
 
   if (listings.length === 0) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-16 text-center md:py-24">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl gradient-brand shadow-glow">
-          <BarChart3 className="h-7 w-7 text-brand-foreground" />
+      <DashboardShell variant="owner">
+        <div className="mx-auto max-w-3xl px-4 py-16 text-center md:py-24">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl gradient-brand shadow-glow">
+            <BarChart3 className="h-7 w-7 text-brand-foreground" />
+          </div>
+          <h1 className="mt-6 font-display text-3xl font-bold md:text-4xl">No listings yet</h1>
+          <p className="mt-3 text-muted-foreground">
+            List your first restaurant, resort or gym to unlock the owner dashboard.
+          </p>
+          <Link
+            to="/list-business"
+            className="mt-6 inline-flex items-center gap-2 rounded-full gradient-brand px-6 py-3 text-sm font-semibold text-brand-foreground shadow-glow"
+          >
+            <Plus className="h-4 w-4" /> List your business
+          </Link>
         </div>
-        <h1 className="mt-6 font-display text-3xl font-bold md:text-4xl">No listings yet</h1>
-        <p className="mt-3 text-muted-foreground">
-          List your first restaurant, resort or gym to unlock the owner dashboard.
-        </p>
-        <Link
-          to="/list-business"
-          className="mt-6 inline-flex items-center gap-2 rounded-full gradient-brand px-6 py-3 text-sm font-semibold text-brand-foreground shadow-glow"
-        >
-          <Plus className="h-4 w-4" /> List your business
-        </Link>
-      </div>
+      </DashboardShell>
     );
   }
 
@@ -74,7 +77,8 @@ function Dashboard() {
   const saves = Math.round(views * 0.18);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-12">
+    <DashboardShell variant="owner">
+    <div className="mx-auto max-w-6xl px-4 py-8 md:px-8 md:py-12">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="text-xs font-semibold uppercase tracking-wider text-brand">Owner dashboard</div>
@@ -222,6 +226,7 @@ function Dashboard() {
         </div>
       </div>
     </div>
+    </DashboardShell>
   );
 }
 
