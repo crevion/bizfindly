@@ -29,6 +29,7 @@ import {
   type MenuProduct,
   type ProductStatus,
 } from "@/lib/menu";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
 export const Route = createFileRoute("/dashboard/menu")({
   component: MenuManagement,
@@ -173,8 +174,9 @@ function MenuManagement() {
       .filter((c) => c.products.length > 0);
   }, [menu, search]);
 
-  return (
-    <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-12">
+ return (
+    <DashboardShell variant="owner">
+    <div className="mx-auto max-w-6xl px-4 py-8 md:px-8 md:py-12">
       <button
         onClick={() => navigate({ to: "/dashboard" })}
         className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
@@ -422,6 +424,7 @@ function MenuManagement() {
         />
       )}
     </div>
+    </DashboardShell>
   );
 }
 
