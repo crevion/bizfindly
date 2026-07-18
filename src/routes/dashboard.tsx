@@ -77,7 +77,8 @@ function Dashboard() {
   const saves = Math.round(views * 0.18);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-12">
+    <DashboardShell variant="owner">
+    <div className="mx-auto max-w-6xl px-4 py-8 md:px-8 md:py-12">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="text-xs font-semibold uppercase tracking-wider text-brand">Owner dashboard</div>
@@ -225,6 +226,7 @@ function Dashboard() {
         </div>
       </div>
     </div>
+    </DashboardShell>
   );
 }
 
