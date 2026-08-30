@@ -1,103 +1,117 @@
 import Link from "next/link";
-import { Compass, Sparkles, Star, TrendingUp } from "lucide-react";
+import { ArrowRight, Compass, Sparkles, Store } from "lucide-react";
+import { places } from "@/content/places";
 
-const heroImg = (id: string) =>
-  `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1200&q=80`;
+const heroHeights = ["h-56", "h-72", "h-64", "h-80", "h-60", "h-72", "h-52", "h-64"];
 
-const HERO_IMAGES = [
-  heroImg("photo-1517248135467-4c7edcad34c4"),
-  heroImg("photo-1566073771259-6a8506099945"),
-  heroImg("photo-1414235077428-338989a2e8c0"),
+const fallbackImages = [
+  "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1631515243349-e0cb75fb8d3a?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?auto=format&fit=crop&w=1200&q=80",
 ];
 
+const allImages = places.length > 0 ? places.map((p) => p.image) : fallbackImages;
+
+function MarqueeColumn({ images, anim }: { images: string[]; anim: string }) {
+  const repeated = [...images, ...images];
+  return (
+    <div className="mask-fade-y relative h-full overflow-hidden">
+      <div className={`flex flex-col gap-3 ${anim}`}>
+        {repeated.map((src, i) => (
+          <div
+            key={i}
+            className={`${heroHeights[i % heroHeights.length]} w-full overflow-hidden rounded-2xl bg-muted shadow-soft`}
+          >
+            <img src={src} alt="" loading="lazy" className="h-full w-full object-cover" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function HeroImageGrid() {
+  const col1 = allImages.filter((_, i) => i % 3 === 0);
+  const col2 = allImages.filter((_, i) => i % 3 === 1);
+  const col3 = allImages.filter((_, i) => i % 3 === 2);
+
+  return (
+    <div className="relative h-[560px] w-full">
+      <div className="grid h-full grid-cols-3 gap-3">
+        <MarqueeColumn images={col1} anim="marquee-up" />
+        <MarqueeColumn images={col2} anim="marquee-down" />
+        <MarqueeColumn images={col3} anim="marquee-up-slow" />
+      </div>
+    </div>
+  );
+}
+
 export function HeroSection() {
+  const mobileImages = [
+    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=600&q=80",
+  ];
+
   return (
     <section className="relative overflow-hidden">
-      <div className="absolute inset-0 -z-10">
-        <div className="gradient-brand absolute -top-32 right-[-10%] h-[480px] w-[480px] rounded-full opacity-30 blur-3xl" />
-        <div className="bg-foreground/10 absolute -bottom-32 left-[-10%] h-[420px] w-[420px] rounded-full blur-3xl" />
-      </div>
-
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 md:grid-cols-[1.1fr_0.9fr] md:items-center md:gap-16 md:px-8 md:py-20">
+      <div className="mx-auto grid max-w-7xl gap-12 px-4 pt-16 pb-16 md:grid-cols-[1.05fr_0.95fr] md:items-center md:gap-20 md:px-8 md:pt-24 md:pb-24">
         <div>
-          <span className="glass inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold">
-            <Sparkles className="text-brand h-3.5 w-3.5" />
-            AI-powered local discovery · Bangladesh
+          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+            <Sparkles className="h-3.5 w-3.5 text-brand" />
+            AI-powered Local Discovery
           </span>
-          <h1 className="font-display mt-5 text-4xl leading-[1.05] font-extrabold tracking-tight md:text-6xl lg:text-7xl">
-            Discover the best <span className="text-gradient-brand">places</span> around you.
+          <h1 className="mt-6 font-display text-5xl font-extrabold leading-[1.02] tracking-tight md:text-6xl lg:text-7xl">
+            Find your next <span className="text-brand">favorite</span> place.
           </h1>
-          <p className="text-muted-foreground mt-5 max-w-xl text-base md:text-lg">
-            Personalized recommendations for restaurants, cafes and resorts — based on your mood,
-            budget and vibe. No more endless scrolling.
+          <p className="mt-6 max-w-lg text-base text-muted-foreground md:text-lg">
+            Discover restaurants, resorts and gyms with AI-powered recommendations.
           </p>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
               href="/ai"
-              className="gradient-brand text-brand-foreground shadow-glow inline-flex items-center justify-center gap-2 rounded-full px-7 py-4 text-base font-semibold transition hover:opacity-95"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3.5 text-sm font-semibold text-brand-foreground shadow-soft transition hover:-translate-y-0.5 hover:shadow-card"
             >
-              <Sparkles className="h-5 w-5" />
-              Start Discovering
+              <Sparkles className="h-4 w-4" />
+              AI Discover
             </Link>
             <Link
               href="/discover"
-              className="border-border bg-surface text-foreground hover:bg-muted inline-flex items-center justify-center gap-2 rounded-full border px-7 py-4 text-base font-semibold transition"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-6 py-3.5 text-sm font-semibold text-foreground transition hover:-translate-y-0.5 hover:bg-muted"
             >
-              <Compass className="h-5 w-5" />
-              Browse Manually
+              <Compass className="h-4 w-4" />
+              Manual Discover
             </Link>
-          </div>
-
-          <div className="text-muted-foreground mt-10 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm">
-            <div>
-              <div className="font-display text-foreground text-2xl font-bold">10K+</div>
-              Places curated
-            </div>
-            <div className="bg-border h-8 w-px" />
-            <div>
-              <div className="font-display text-foreground text-2xl font-bold">4.8★</div>
-              Avg user rating
-            </div>
-            <div className="bg-border h-8 w-px" />
-            <div>
-              <div className="font-display text-foreground text-2xl font-bold">25+</div>
-              Cities covered
-            </div>
+            <Link
+              href="/list-business"
+              className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-semibold text-foreground transition hover:text-brand"
+            >
+              <Store className="h-4 w-4" />
+              List Your Business
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
 
-        <div className="relative grid grid-cols-6 grid-rows-6 gap-3 md:h-[560px]">
-          <div className="shadow-card col-span-4 row-span-4 overflow-hidden rounded-3xl">
-            <img src={HERO_IMAGES[0]} alt="" className="h-full w-full object-cover" />
-          </div>
-          <div className="shadow-card col-span-2 row-span-2 overflow-hidden rounded-3xl">
-            <img src={HERO_IMAGES[1]} alt="" className="h-full w-full object-cover" />
-          </div>
-          <div className="gradient-brand text-brand-foreground shadow-glow col-span-2 row-span-2 flex flex-col justify-between overflow-hidden rounded-3xl p-4">
-            <Sparkles className="h-6 w-6" />
-            <div>
-              <div className="font-display text-xl leading-tight font-bold">Match your mood</div>
-              <div className="mt-1 text-xs opacity-90">AI picks in 60s</div>
-            </div>
-          </div>
-          <div className="shadow-card col-span-3 row-span-2 overflow-hidden rounded-3xl">
-            <img src={HERO_IMAGES[2]} alt="" className="h-full w-full object-cover" />
-          </div>
-          <div className="bg-card shadow-card col-span-3 row-span-2 flex flex-col justify-between rounded-3xl p-4">
-            <div className="text-muted-foreground flex items-center gap-1 text-xs font-semibold">
-              <TrendingUp className="text-brand h-4 w-4" />
-              TRENDING NOW
-            </div>
-            <div>
-              <div className="font-display text-lg leading-tight font-bold">
-                Rooftops in Gulshan
+        <div className="relative hidden md:block">
+          <HeroImageGrid />
+        </div>
+
+        <div className="md:hidden">
+          <div className="grid grid-cols-2 gap-2">
+            {mobileImages.map((img) => (
+              <div key={img} className="aspect-square overflow-hidden rounded-2xl shadow-soft">
+                <img src={img} alt="" className="h-full w-full object-cover" />
               </div>
-              <div className="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
-                <Star className="fill-brand text-brand h-3 w-3" />
-                4.8 · 1.2k reviews
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>

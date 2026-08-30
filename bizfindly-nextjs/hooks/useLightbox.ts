@@ -9,6 +9,7 @@ export function useLightbox(galleryLength: number) {
     if (index === null) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setIndex(null);
+      if (galleryLength <= 1) return;
       if (e.key === "ArrowRight") setIndex((i) => (i === null ? 0 : (i + 1) % galleryLength));
       if (e.key === "ArrowLeft")
         setIndex((i) => (i === null ? 0 : (i - 1 + galleryLength) % galleryLength));
@@ -25,7 +26,13 @@ export function useLightbox(galleryLength: number) {
     index,
     open: (i: number) => setIndex(i),
     close: () => setIndex(null),
-    next: () => setIndex((i) => (i === null ? 0 : (i + 1) % galleryLength)),
-    prev: () => setIndex((i) => (i === null ? 0 : (i - 1 + galleryLength) % galleryLength)),
+    next: () =>
+      setIndex((i) =>
+        galleryLength > 0 ? (i === null ? 0 : (i + 1) % galleryLength) : null,
+      ),
+    prev: () =>
+      setIndex((i) =>
+        galleryLength > 0 ? (i === null ? 0 : (i - 1 + galleryLength) % galleryLength) : null,
+      ),
   };
 }

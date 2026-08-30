@@ -3,10 +3,9 @@ import type { LucideIcon } from "lucide-react";
 
 export const HEADER_LINKS = [
   { to: "/", label: "Home" },
+  { to: "/about", label: "About" },
   { to: "/discover", label: "Discover" },
-  { to: "/discover?cat=restaurant", label: "Restaurants" },
-  { to: "/discover?cat=resort", label: "Resorts" },
-  { to: "/discover?cat=gym", label: "Gyms" },
+  { to: "/contact", label: "Contact" },
 ] as const;
 
 export const MOBILE_NAV_ITEMS: {
