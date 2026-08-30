@@ -12,11 +12,12 @@ import { MobileActionBar } from "@/components/discover/MobileActionBar";
 import { PopularAreas } from "@/components/discover/PopularAreas";
 import { QuickFilterRow } from "@/components/discover/QuickFilterRow";
 import { ResultsGrid } from "@/components/discover/ResultsGrid";
+import { DiscoverPageSkeleton } from "@/components/discover/DiscoverCardSkeleton";
 import { useDiscoverState } from "@/hooks/useDiscoverState";
 
 export default function DiscoverPage() {
   return (
-    <Suspense fallback={<div className="bg-background min-h-screen" />}>
+    <Suspense fallback={<DiscoverPageSkeleton />}>
       <DiscoverInner />
     </Suspense>
   );

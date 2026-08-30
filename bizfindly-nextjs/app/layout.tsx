@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "@/components/common/AppShell";
+import ReactQueryProvider from "@/providers/ReactQueryProvider";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -45,7 +47,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} ${plusJakarta.variable}`}>
       <body>
-        <AppShell>{children}</AppShell>
+        <ReactQueryProvider>
+          <AppShell>{children}</AppShell>
+          <Toaster position="top-right" />
+        </ReactQueryProvider>
       </body>
     </html>
   );

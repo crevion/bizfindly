@@ -4,7 +4,12 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import type { Place } from "@/types/place";
 import { listPlaces, type BudgetTier } from "@/lib/backend/places";
-import { PRICE_BOUNDS, type DiscoverCategory, type SortOption } from "@/content/discoverFilters";
+import {
+  PRICE_BOUNDS,
+  type DiscoverCategory,
+  type SortOption,
+  SORT_OPTIONS,
+} from "@/content/discoverFilters";
 import { matchesQuickFilter, priceFromRange } from "@/lib/discoverFilters";
 
 export type TaxonomyDimension = "cuisine" | "vibe" | "occasion" | "groupType" | "tag" | "facility";
@@ -15,18 +20,47 @@ const EMPTY_TAX: TaxonomyFilters = {};
 
 export function useDiscoverState() {
   const searchParams = useSearchParams();
-  const catParam = searchParams.get("cat");
-  const initialCat = (catParam as DiscoverCategory | null) ?? "restaurant";
-  const initialQ = searchParams.get("q") ?? "";
+  const catParam = searchParams.get("cat") as DiscoverCategory | null;
+  const areaParam = searchParams.get("area");
+  const queryParam = searchParams.get("q") ?? "";
+  const sortParam = searchParams.get("sort") as SortOption | null;
+  const quickParam = searchParams.get("quick");
+  const collectionParam = searchParams.get("collection");
+
+  const initialCat: DiscoverCategory =
+    catParam && (catParam === "restaurant" || catParam === "resort" || catParam === "gym")
+      ? catParam
+      : collectionParam === "weekend"
+        ? "resort"
+        : collectionParam === "women-gyms"
+          ? "gym"
+          : "restaurant";
+
+  const initialArea = areaParam || (collectionParam === "weekend" ? "Gazipur" : "All");
+  const initialQ = queryParam;
+  const initialSort: SortOption =
+    sortParam && SORT_OPTIONS.includes(sortParam)
+      ? sortParam
+      : collectionParam === "luxury"
+        ? "Top rated"
+        : collectionParam === "budget"
+          ? "Budget first"
+          : "Recommended";
+
+  const initialQuick: string[] = [];
+  if (quickParam) initialQuick.push(quickParam);
+  if (collectionParam === "hidden" && !initialQuick.includes("Hidden gem")) {
+    initialQuick.push("Hidden gem");
+  }
 
   const [cat, setCat] = useState<DiscoverCategory>(initialCat);
   const [query, setQuery] = useState(initialQ);
-  const [area, setArea] = useState<string>("All");
-  const [activeQuick, setActiveQuick] = useState<string[]>([]);
+  const [area, setArea] = useState<string>(initialArea);
+  const [activeQuick, setActiveQuick] = useState<string[]>(initialQuick);
   const [view, setView] = useState<"grid" | "map">("grid");
   const [showSearchPanel, setShowSearchPanel] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [sort, setSort] = useState<SortOption>("Recommended");
+  const [sort, setSort] = useState<SortOption>(initialSort);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [openNow, setOpenNow] = useState(false);
   const [minRating, setMinRating] = useState(0);
@@ -35,20 +69,43 @@ export function useDiscoverState() {
   const [taxFilters, setTaxFilters] = useState<TaxonomyFilters>(EMPTY_TAX);
   const [budgetTier, setBudgetTier] = useState<BudgetTier | undefined>(undefined);
 
+  // Sync state when URL params change
   useEffect(() => {
     if (catParam === "restaurant" || catParam === "resort" || catParam === "gym") {
       setCat(catParam);
-    } else if (catParam === null) {
-      setCat("restaurant");
+    } else if (collectionParam === "weekend") {
+      setCat("resort");
+    } else if (collectionParam === "women-gyms") {
+      setCat("gym");
     }
-  }, [catParam]);
+
+    if (areaParam) {
+      setArea(areaParam);
+    } else if (collectionParam === "weekend") {
+      setArea("Gazipur");
+    }
+
+    if (queryParam !== undefined) {
+      setQuery(queryParam);
+    }
+
+    if (sortParam && SORT_OPTIONS.includes(sortParam as SortOption)) {
+      setSort(sortParam as SortOption);
+    } else if (collectionParam === "luxury") {
+      setSort("Top rated");
+    } else if (collectionParam === "budget") {
+      setSort("Budget first");
+    }
+
+    if (quickParam || collectionParam === "hidden") {
+      const q = quickParam || "Hidden gem";
+      setActiveQuick((prev) => (prev.includes(q) ? prev : [...prev, q]));
+    }
+  }, [catParam, areaParam, queryParam, sortParam, quickParam, collectionParam]);
 
   useEffect(() => {
     const b = PRICE_BOUNDS[cat];
     setPriceRange([b[0], b[1]]);
-    setActiveQuick([]);
-    setTaxFilters(EMPTY_TAX);
-    setBudgetTier(undefined);
   }, [cat]);
 
   const setTaxFilter = (dim: TaxonomyDimension, slug: string | undefined) =>
@@ -61,7 +118,7 @@ export function useDiscoverState() {
 
   const [debouncedQuery, setDebouncedQuery] = useState(initialQ);
   useEffect(() => {
-    const id = setTimeout(() => setDebouncedQuery(query), 350);
+    const id = setTimeout(() => setDebouncedQuery(query), 300);
     return () => clearTimeout(id);
   }, [query]);
 
@@ -96,7 +153,6 @@ export function useDiscoverState() {
     return () => {
       active = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cat, area, debouncedQuery, taxKey, budgetTier]);
 
   const baseList = items;
@@ -115,7 +171,8 @@ export function useDiscoverState() {
           p.name.toLowerCase().includes(q) ||
           p.cuisine?.toLowerCase().includes(q) ||
           p.area.toLowerCase().includes(q) ||
-          p.tags.join(" ").toLowerCase().includes(q),
+          p.tags.join(" ").toLowerCase().includes(q) ||
+          p.facilities.join(" ").toLowerCase().includes(q),
       );
     }
     res = res.filter((p) => {
@@ -157,6 +214,7 @@ export function useDiscoverState() {
     setPriceRange([bounds[0], bounds[1]]);
     setTaxFilters(EMPTY_TAX);
     setBudgetTier(undefined);
+    setQuery("");
   };
 
   return {

@@ -2,18 +2,29 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Compass, Heart, Home, Sparkles, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { MOBILE_NAV_ITEMS } from "@/content/navigation";
+import { useAuthStore } from "@/lib/backend/auth";
 
 export function MobileNav() {
   const pathname = usePathname();
+  const user = useAuthStore((s) => s.user);
+
+  const items = [
+    { to: "/", label: "Home", icon: Home },
+    { to: "/discover", label: "Discover", icon: Compass },
+    { to: "/ai", label: "AI", icon: Sparkles, isAi: true },
+    { to: "/saved", label: "Saved", icon: Heart },
+    user
+      ? { to: "/profile", label: "Profile", icon: User, isUser: true }
+      : { to: "/join", label: "Join", icon: User, isUser: true },
+  ];
 
   return (
     <nav className="fixed bottom-3 left-1/2 z-50 w-[min(94vw,420px)] -translate-x-1/2 md:hidden">
       <div className="glass shadow-card flex items-center justify-around rounded-full px-2 py-2">
-        {MOBILE_NAV_ITEMS.map(({ to, label, icon: Icon }) => {
+        {items.map(({ to, label, icon: Icon, isAi, isUser }) => {
           const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
-          const isAi = to === "/ai";
           return (
             <Link
               key={to}
@@ -25,14 +36,18 @@ export function MobileNav() {
             >
               <span
                 className={cn(
-                  "flex h-9 w-9 items-center justify-center rounded-full transition",
+                  "flex h-9 w-9 items-center justify-center rounded-full transition overflow-hidden",
                   isAi && "gradient-brand text-brand-foreground shadow-glow",
                   !isAi && active && "bg-foreground/10",
                 )}
               >
-                <Icon className="h-[18px] w-[18px]" />
+                {isUser && user?.avatar ? (
+                  <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
+                ) : (
+                  <Icon className="h-[18px] w-[18px]" />
+                )}
               </span>
-              {label}
+              <span>{label}</span>
             </Link>
           );
         })}
