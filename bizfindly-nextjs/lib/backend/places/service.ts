@@ -31,6 +31,8 @@ export interface PlaceListParams {
 }
 
 const mockGyms = mockPlaces.filter((p) => p.category === "gym");
+const mockResorts = mockPlaces.filter((p) => p.category === "resort");
+const mockRestaurants = mockPlaces.filter((p) => p.category === "restaurant");
 
 export async function listPlaces(
   category: DiscoverCategory,
@@ -53,41 +55,84 @@ export async function listPlaces(
 
   if (category === "gym") {
     let list = mockGyms;
-    if (city) list = list.filter((p) => p.area === city);
+    if (city) list = list.filter((p) => p.area === city || p.location.toLowerCase().includes(city.toLowerCase()));
     if (trending) list = list.filter((p) => p.trending);
     if (search?.trim()) {
       const q = search.toLowerCase();
       list = list.filter(
-        (p) => p.name.toLowerCase().includes(q) || p.area.toLowerCase().includes(q),
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.area.toLowerCase().includes(q) ||
+          p.tags.join(" ").toLowerCase().includes(q),
       );
     }
     return list;
   }
 
   if (category === "resort") {
-    const res = await resortsApi.list({
-      city,
-      tag,
-      facility,
-      search,
-      is_trending: trending,
-      page_size: pageSize,
-    });
-    return res.results.map(mapResortListItem);
+    try {
+      const res = await resortsApi.list({
+        city,
+        tag,
+        facility,
+        search,
+        is_trending: trending,
+        page_size: pageSize,
+      });
+      const mapped = res.results.map(mapResortListItem);
+      if (mapped.length > 0) return mapped;
+    } catch {
+      // Backend error or unavailable, fallback to mock resorts
+    }
+
+    let list = mockResorts;
+    if (city) list = list.filter((p) => p.area === city || p.location.toLowerCase().includes(city.toLowerCase()));
+    if (trending) list = list.filter((p) => p.trending);
+    if (search?.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.area.toLowerCase().includes(q) ||
+          p.tags.join(" ").toLowerCase().includes(q) ||
+          p.description.toLowerCase().includes(q),
+      );
+    }
+    return list;
   }
 
-  const res = await restaurantsApi.list({
-    area: city,
-    search,
-    cuisine,
-    vibe,
-    occasion,
-    group_type: groupType,
-    budget_tier: budgetTier,
-    page_size: pageSize,
-  });
-  const mapped = res.results.map(mapRestaurantListItem);
-  return trending ? mapped.filter((p) => p.trending) : mapped;
+  try {
+    const res = await restaurantsApi.list({
+      area: city,
+      search,
+      cuisine,
+      vibe,
+      occasion,
+      group_type: groupType,
+      budget_tier: budgetTier,
+      page_size: pageSize,
+    });
+    const mapped = res.results.map(mapRestaurantListItem);
+    const resultList = trending ? mapped.filter((p) => p.trending) : mapped;
+    if (resultList.length > 0) return resultList;
+  } catch {
+    // Fallback to mock restaurants
+  }
+
+  let list = mockRestaurants;
+  if (city) list = list.filter((p) => p.area === city || p.location.toLowerCase().includes(city.toLowerCase()));
+  if (trending) list = list.filter((p) => p.trending);
+  if (search?.trim()) {
+    const q = search.toLowerCase();
+    list = list.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.area.toLowerCase().includes(q) ||
+        p.cuisine?.toLowerCase().includes(q) ||
+        p.tags.join(" ").toLowerCase().includes(q),
+    );
+  }
+  return list;
 }
 
 export async function getPlace(slug: string): Promise<Place | null> {
