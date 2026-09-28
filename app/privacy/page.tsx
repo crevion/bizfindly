@@ -59,6 +59,7 @@ const SECTIONS = [
 ];
 
 export default function PrivacyPage() {
+  console.log("trigger deployment");
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
