@@ -431,3 +431,117 @@
     background-position: 200% 0;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Map tooltips (Tippy)
+
+   The finder's map draws its pins and its radius circle into Google's own
+   overlay panes, which have no elements to hang a tooltip off, so Tippy is
+   driven from a virtual reference at the cursor (see mapTooltip.ts). Styling
+   it here rather than importing tippy's stylesheet keeps it on the app's own
+   tokens, so it follows dark mode like every other popover.
+--------------------------------------------------------------------------- */
+.tippy-box[data-theme~="bizfindly"] {
+  max-width: 260px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow:
+    0 10px 30px -10px rgb(0 0 0 / 0.28),
+    0 2px 8px -2px rgb(0 0 0 / 0.12);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.tippy-box[data-theme~="bizfindly"] > .tippy-content {
+  padding: 0.5rem 0.625rem;
+}
+
+/* The arrow is a rotated square, so only two of its borders are on show. */
+.tippy-box[data-theme~="bizfindly"] > .tippy-arrow {
+  width: 10px;
+  height: 10px;
+}
+
+.tippy-box[data-theme~="bizfindly"] > .tippy-arrow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--popover);
+  border: 1px solid var(--border);
+  transform: rotate(45deg);
+  border-radius: 2px;
+}
+
+.tippy-box[data-theme~="bizfindly"][data-placement^="top"] > .tippy-arrow {
+  bottom: -5px;
+}
+.tippy-box[data-theme~="bizfindly"][data-placement^="top"] > .tippy-arrow::before {
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+
+.tippy-box[data-theme~="bizfindly"][data-placement^="bottom"] > .tippy-arrow {
+  top: -5px;
+}
+.tippy-box[data-theme~="bizfindly"][data-placement^="bottom"] > .tippy-arrow::before {
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+.tippy-box[data-theme~="bizfindly"][data-placement^="left"] > .tippy-arrow {
+  right: -5px;
+}
+.tippy-box[data-theme~="bizfindly"][data-placement^="left"] > .tippy-arrow::before {
+  clip-path: polygon(100% 0, 0 100%, 100% 100%);
+}
+
+.tippy-box[data-theme~="bizfindly"][data-placement^="right"] > .tippy-arrow {
+  left: -5px;
+}
+.tippy-box[data-theme~="bizfindly"][data-placement^="right"] > .tippy-arrow::before {
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+.map-tip__title {
+  font-weight: 700;
+  color: var(--popover-foreground);
+  /* Set per tooltip to the current business type's colour. */
+  border-left: 3px solid var(--map-tip-accent, var(--brand));
+  padding-left: 0.4rem;
+  margin-left: -0.125rem;
+}
+
+.map-tip__subtitle {
+  margin-top: 0.1875rem;
+  color: var(--muted-foreground);
+}
+
+.map-tip__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.375rem;
+}
+
+.map-tip__fact {
+  border-radius: 999px;
+  background: var(--muted);
+  color: var(--foreground);
+  padding: 0.0625rem 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+/* Tippy's own transition, which its stylesheet would normally supply. */
+.tippy-box[data-theme~="bizfindly"][data-animation="shift-away-subtle"] {
+  transition-property: transform, visibility, opacity;
+}
+.tippy-box[data-theme~="bizfindly"][data-animation="shift-away-subtle"][data-state="hidden"] {
+  opacity: 0;
+}
+.tippy-box[data-theme~="bizfindly"][data-animation="shift-away-subtle"][data-state="hidden"][data-placement^="top"] {
+  transform: translateY(4px);
+}
+.tippy-box[data-theme~="bizfindly"][data-animation="shift-away-subtle"][data-state="hidden"][data-placement^="bottom"] {
+  transform: translateY(-4px);
+}

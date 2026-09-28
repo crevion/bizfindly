@@ -1,12 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { SavePlaceButton } from "./SavePlaceButton";
 import { BadgeCheck, Clock, MapPin, Star, Tag } from "lucide-react";
 import type { Place } from "@/types/place";
 import { cn } from "@/lib/utils";
+import { hasPriceFigure, priceAmount, PRICE_SYMBOL } from "@/lib/backend/places/price";
 
-const priceLabel = (s: number) => "৳".repeat(s || 1);
+// The mappers hand us the range prefixed with the price tier and spelled out
+// ("৳৳ • 500–900 per person"); a card only has room for the numbers, behind one
+// symbol. A price nobody recorded is left off the card entirely.
+const rangeLabel = (range?: string) => {
+  if (!hasPriceFigure(range)) return null;
+  return `${PRICE_SYMBOL}${priceAmount(range).replace(/\s*per person$/, "")}`;
+};
 
 export function PlaceCard({
   place: s,
@@ -21,6 +27,7 @@ export function PlaceCard({
   const numId = parseInt(s.id, 10) || 0;
   const isOpenNow = numId % 4 !== 0;
   const hasCoupon = numId % 3 === 0;
+  const range = rangeLabel(s.priceRange);
 
   return (
     <Link
@@ -50,7 +57,6 @@ export function PlaceCard({
             </span>
           )}
         </div>
-        <SavePlaceButton place={s} className="absolute right-3 top-3 h-8 w-8 rounded-full bg-background/90 text-foreground shadow-soft backdrop-blur hover:bg-background hover:text-brand" />
         <div className="absolute inset-x-3 bottom-3 flex flex-wrap items-center gap-1.5">
           {isOpenNow && (
             <span className="inline-flex items-center gap-1 rounded-full bg-background/95 px-2 py-0.5 text-[10px] font-semibold text-success shadow-soft backdrop-blur">
@@ -78,12 +84,12 @@ export function PlaceCard({
           {isVerified && <BadgeCheck className="h-4 w-4 shrink-0 text-info" />}
         </div>
         <div className="mt-1 flex items-center justify-between text-[12px]">
-          <span className="inline-flex items-center gap-1 text-foreground">
+          <span className="inline-flex min-w-0 items-center gap-1 text-foreground">
             <Star className="h-3.5 w-3.5 fill-brand text-brand" />
             <span className="font-semibold">{s.rating}</span>
             <span className="text-muted-foreground">({s.reviews?.toLocaleString?.() ?? s.reviews})</span>
           </span>
-          <span className="font-semibold text-muted-foreground">{priceLabel(s.priceLevel)}</span>
+          {range && <span className="shrink-0 font-semibold text-muted-foreground">{range}</span>}
         </div>
       </div>
     </Link>

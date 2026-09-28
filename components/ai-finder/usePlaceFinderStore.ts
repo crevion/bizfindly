@@ -3,8 +3,12 @@
 import { create } from "zustand";
 import type { Place } from "@/types/place";
 import { streamChat } from "@/lib/backend/ai/chat";
-import { aiRestaurantsApi } from "@/lib/backend/ai/api";
-import { mapRestaurantListItem } from "@/lib/backend/places/map";
+import { aiPlacesApi, mapPlaceListItem } from "@/lib/backend/ai/api";
+import {
+  businessTypeConfig,
+  DEFAULT_BUSINESS_TYPE,
+  type BusinessType,
+} from "./businessTypes";
 import {
   BUDGET_MAX,
   DEFAULT_LIST_TAB,
@@ -12,7 +16,14 @@ import {
   type ListTab,
   type SortOption,
 } from "./constants";
-import { centerOfPlaces, listQueryString, radiusSearch } from "./radiusSearch";
+import { centerOfPlaces, radiusSearch } from "./radiusSearch";
+import { listQueryString } from "./listQuery";
+import {
+  geolocationAvailable,
+  geolocationPermission,
+  requestGeolocation,
+  type GeoStatus,
+} from "./geolocation";
 import type { UrlFilters } from "./filterParams";
 import { locationsApi, type LocationCity } from "@/lib/backend/locations/api";
 import type { MapCenter } from "./constants";
@@ -27,7 +38,8 @@ export interface ChatMessage {
 interface PlaceFinderState {
   openAI: boolean;
   searchPlace: string;
-  searchCategory: "all" | "restaurant" | "resort" | "gym";
+  /** Which listings the page is showing: restaurants, resorts or gyms. */
+  businessType: BusinessType;
   searchCuisine: string;
   selectedArea: string;
   selectedCity: string;
@@ -35,13 +47,21 @@ interface PlaceFinderState {
   maxBudget: number;
   minRating: number;
   openNow: boolean;
-  selectedVibes: string[];
+  /** Listing filter parameter -> the slugs picked in that chip group. */
+  facets: Record<string, string[]>;
   range: number;
   unit: "km" | "miles";
   /** Middle of the unfiltered listings; the map and radius centre on it. */
   placesCenter: MapCenter | null;
-  /** Cities and areas that actually have listings. */
+  /** Where the browser says the visitor is, once they have allowed it. */
+  userLocation: MapCenter | null;
+  geoStatus: GeoStatus;
+  /** Why locating failed, in the browser's own words, when it said. */
+  geoMessage: string | null;
+  /** Cities and areas that actually have listings, for the current type. */
   locations: LocationCity[];
+  /** The type `locations` was loaded for, so a type change reloads them. */
+  locationsType: BusinessType | null;
   listTab: ListTab;
   sortBy: SortOption;
   allPlaces: Place[];
@@ -66,7 +86,7 @@ interface PlaceFinderState {
 
   setOpenAI: (val: boolean) => void;
   setSearchPlace: (val: string) => void;
-  setSearchCategory: (val: "all" | "restaurant" | "resort" | "gym") => void;
+  setBusinessType: (val: BusinessType) => void;
   setSearchCuisine: (val: string) => void;
   setSelectedArea: (val: string) => void;
   setSelectedCity: (val: string) => void;
@@ -74,7 +94,8 @@ interface PlaceFinderState {
   setMaxBudget: (val: number) => void;
   setMinRating: (val: number) => void;
   setOpenNow: (val: boolean) => void;
-  toggleVibe: (vibe: string) => void;
+  toggleFacet: (param: string, slug: string) => void;
+  clearFacets: () => void;
   setRange: (val: number) => void;
   setUnit: (val: "km" | "miles") => void;
   setListTab: (tab: ListTab) => void;
@@ -89,119 +110,70 @@ interface PlaceFinderState {
   applyUrlFilters: (filters: Partial<UrlFilters>) => void;
   initializePlaces: () => Promise<void>;
   loadLocations: () => Promise<void>;
+  /** Ask the browser where the visitor is, and centre the map there. */
+  locateUser: (options?: { prompt?: boolean }) => Promise<void>;
+  clearUserLocation: () => void;
   fetchPlaces: () => Promise<void>;
   loadMorePlaces: () => Promise<void>;
 }
 
-const sortPlacesList = (list: Place[], sortBy: SortOption): Place[] => {
-  const arr = [...list];
-  switch (sortBy) {
-    case "Rating: High to Low":
-      return arr.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-    case "Price: Low to High":
-      return arr.sort((a, b) => (a.priceLevel || 1) - (b.priceLevel || 1));
-    case "Price: High to Low":
-      return arr.sort((a, b) => (b.priceLevel || 1) - (a.priceLevel || 1));
-    case "Most Reviews":
-      return arr.sort((a, b) => (b.reviews || 0) - (a.reviews || 0));
-    default:
-      return arr;
-  }
-};
+/**
+ * The loaded listings, narrowed by what only this browser knows.
+ *
+ * Everything else -- the business type, place, text search, cuisine, chips,
+ * rating, budget, Open now, Trending and the sort order -- is decided by the
+ * request (see listQueryString), so the loaded page already matches it and
+ * re-checking it here could only disagree. Saved places are a set of slugs
+ * held locally and nothing the backend can filter on, so that tab is applied
+ * here.
+ */
+const visibleFor = (state: PlaceFinderState, rawList: Place[]): Place[] =>
+  state.listTab === "Saved"
+    ? rawList.filter((place) => state.savedPlaceIds.has(place.id))
+    : rawList;
 
-const filterPlacesList = (state: PlaceFinderState, rawList: Place[]): Place[] => {
-  let list = rawList;
+/** Whether the current request is scoped to a place rather than the whole type. */
+const isNarrowedSearch = (state: PlaceFinderState): boolean =>
+  Boolean(radiusSearch(state) || state.selectedCity || state.selectedArea);
 
-  if (state.searchCategory !== "all") {
-    list = list.filter((p) => p.category === state.searchCategory);
-  }
+/** Every filter back to its default, for "Clear all" and a type switch. */
+const CLEARED_FILTERS = {
+  searchPlace: "",
+  searchCuisine: "",
+  selectedArea: "",
+  selectedCity: "",
+  minBudget: 0,
+  maxBudget: BUDGET_MAX,
+  minRating: 0,
+  openNow: false,
+  facets: {} as Record<string, string[]>,
+  range: 0,
+  listTab: DEFAULT_LIST_TAB,
+  sortBy: DEFAULT_SORT,
+} as const;
 
-  if (state.searchPlace.trim()) {
-    const q = state.searchPlace.toLowerCase().trim();
-    list = list.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.area?.toLowerCase().includes(q) ||
-        p.cuisine?.toLowerCase().includes(q) ||
-        p.tags?.some((t) => t.toLowerCase().includes(q)),
-    );
-  }
-
-  if (state.searchCuisine) {
-    const c = state.searchCuisine.toLowerCase();
-    list = list.filter((p) => p.cuisine?.toLowerCase().includes(c));
-  }
-
-  // With a radius active the backend already decided what is nearby, and a
-  // place 2 km away may well sit in a neighbouring area -- so only fall back to
-  // matching the area/city text when no radius is in play.
-  if (!radiusSearch(state)) {
-    if (state.selectedArea) {
-      list = list.filter(
-        (p) =>
-          p.area?.toLowerCase() === state.selectedArea.toLowerCase() ||
-          p.location?.toLowerCase().includes(state.selectedArea.toLowerCase()),
-      );
-    } else if (state.selectedCity) {
-      list = list.filter((p) =>
-        p.location?.toLowerCase().includes(state.selectedCity.toLowerCase()),
-      );
-    }
-  }
-
-  if (state.selectedVibes.length > 0) {
-    list = list.filter((p) =>
-      state.selectedVibes.some(
-        (v) =>
-          p.tags?.some((t) => t.toLowerCase().includes(v.toLowerCase())) ||
-          p.facilities?.some((f) => f.toLowerCase().includes(v.toLowerCase())),
-      ),
-    );
-  }
-
-  if (state.minRating > 0) {
-    list = list.filter((p) => p.rating >= state.minRating);
-  }
-
-  if (state.listTab === "Trending") {
-    list = list.filter((p) => p.trending);
-  } else if (state.listTab === "Saved") {
-    list = list.filter((p) => state.savedPlaceIds.has(p.id));
-  }
-
-  return sortPlacesList(list, state.sortBy);
-};
-
-// Dragging the slider fires continuously; only the resting value deserves a request.
-const RADIUS_DEBOUNCE_MS = 350;
-let radiusTimer: ReturnType<typeof setTimeout> | null = null;
+// Typing and dragging fire continuously; only the resting value deserves a
+// request. Every such control shares one timer, so settling two of them at
+// once costs one request rather than two.
+const SETTLE_MS = 350;
+let settleTimer: ReturnType<typeof setTimeout> | null = null;
 const refetchAfterPause = (run: () => void) => {
-  if (radiusTimer) clearTimeout(radiusTimer);
-  radiusTimer = setTimeout(() => {
-    radiusTimer = null;
+  if (settleTimer) clearTimeout(settleTimer);
+  settleTimer = setTimeout(() => {
+    settleTimer = null;
     run();
-  }, RADIUS_DEBOUNCE_MS);
+  }, SETTLE_MS);
 };
 
 /**
- * How many places the current search matches, for the count beside the "All"
- * tab.
+ * How many places the current search matches, for the count beside the tabs.
  *
- * Two things it must not do: follow the open tab (switching to Trending would
- * otherwise relabel "All" with the trending count), and report the size of the
- * page in memory (the API returns 20 at a time, so 27 matches read as 20).
- * When no client-side filter has narrowed the loaded page, the server's total
- * is the honest answer because the rest simply has not been fetched yet.
+ * The server's total, not the size of the page in memory: the API returns 20
+ * at a time, so 27 matches would otherwise read as 20. Saved is the exception,
+ * being a set of slugs this browser holds and the backend never counted.
  */
-export const selectAllCount = (state: PlaceFinderState): number => {
-  const matching = filterPlacesList(
-    { ...state, listTab: "All" },
-    state.allPlaces,
-  ).length;
-  return matching === state.allPlaces.length
-    ? Math.max(state.resultCount, matching)
-    : matching;
-};
+export const selectResultCount = (state: PlaceFinderState): number =>
+  state.listTab === "Saved" ? state.visiblePlaces.length : state.resultCount;
 
 // Ignore older requests when a new search or reset replaces them.
 let requestVersion = 0;
@@ -212,7 +184,7 @@ const nextQueryString = (next: string | null) =>
 export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
   openAI: true,
   searchPlace: "",
-  searchCategory: "all",
+  businessType: DEFAULT_BUSINESS_TYPE,
   searchCuisine: "",
   selectedArea: "",
   selectedCity: "",
@@ -220,11 +192,15 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
   maxBudget: BUDGET_MAX,
   minRating: 0,
   openNow: false,
-  selectedVibes: [],
+  facets: {},
   range: 0,
   unit: "km",
   placesCenter: null,
+  userLocation: null,
+  geoStatus: "idle",
+  geoMessage: null,
   locations: [],
+  locationsType: null,
   listTab: DEFAULT_LIST_TAB,
   sortBy: DEFAULT_SORT,
   allPlaces: [],
@@ -246,62 +222,111 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
   selectedPlaceId: null,
   savedPlaceIds: new Set<string>(),
 
-  setOpenAI: (val) => set({ openAI: val }),
+  /**
+   * Switch between the assistant and the manual filter panel.
+   *
+   * The two own different query parameters (see listQueryString), so the
+   * listing has to be asked for again: leaving the assistant's search in place
+   * would show results the panel on screen does not describe.
+   */
+  setOpenAI: (val) => {
+    if (val === get().openAI) return;
+    set({ openAI: val });
+    void get().fetchPlaces();
+  },
+  // Searched server-side, so it settles before asking rather than firing a
+  // request per keystroke.
   setSearchPlace: (val) => {
     set({ searchPlace: val });
-    const filtered = filterPlacesList(get(), get().allPlaces);
-    set({ visiblePlaces: filtered });
+    refetchAfterPause(() => void get().fetchPlaces());
   },
-  setSearchCategory: (val) => {
-    set({ searchCategory: val });
-    const filtered = filterPlacesList(get(), get().allPlaces);
-    set({ visiblePlaces: filtered });
+  /**
+   * Switch the page to another business type.
+   *
+   * This is a change of source, not a filter: the listings, the map pins and
+   * the assistant's grounding all come from the new type's endpoint, so the
+   * loaded results, the conversation about the old type and the filters that
+   * only made sense there are all dropped. City, area and radius survive --
+   * "resorts in Sylhet" after "restaurants in Sylhet" is what someone means.
+   */
+  setBusinessType: (val) => {
+    if (val === get().businessType) return;
+    get().stopChat();
+    set({
+      businessType: val,
+      allPlaces: [],
+      visiblePlaces: [],
+      resultCount: 0,
+      hasMore: false,
+      nextQuery: null,
+      queryString: "",
+      placesCenter: null,
+      selectedPlaceId: null,
+      chatMessages: [],
+      chatInput: "",
+      lastQuery: "",
+      error: null,
+      errorSource: null,
+      searchPlace: "",
+      searchCuisine: "",
+      facets: {},
+      minRating: 0,
+      minBudget: 0,
+      maxBudget: BUDGET_MAX,
+      openNow: false,
+      listTab: DEFAULT_LIST_TAB,
+      sortBy: DEFAULT_SORT,
+      isLoading: true,
+    });
+    void get().loadLocations();
+    void get().fetchPlaces();
   },
   setSearchCuisine: (val) => {
     set({ searchCuisine: val });
-    const filtered = filterPlacesList(get(), get().allPlaces);
-    set({ visiblePlaces: filtered });
+    void get().fetchPlaces();
   },
   setSelectedArea: (val) => {
-    const before = radiusSearch(get());
     set({ selectedArea: val });
-    const filtered = filterPlacesList(get(), get().allPlaces);
-    set({ visiblePlaces: filtered });
-    if (before || radiusSearch(get())) void get().fetchPlaces();
+    void get().fetchPlaces();
   },
   setSelectedCity: (val) => {
-    const before = radiusSearch(get());
     set({ selectedCity: val, selectedArea: "" });
-    const filtered = filterPlacesList(get(), get().allPlaces);
-    set({ visiblePlaces: filtered });
-    if (before || radiusSearch(get())) void get().fetchPlaces();
+    void get().fetchPlaces();
   },
+  // Both budget handles slide continuously, so they settle before asking.
   setMinBudget: (val) => {
     set({ minBudget: val });
-    const filtered = filterPlacesList(get(), get().allPlaces);
-    set({ visiblePlaces: filtered });
+    refetchAfterPause(() => void get().fetchPlaces());
   },
   setMaxBudget: (val) => {
     set({ maxBudget: val });
-    const filtered = filterPlacesList(get(), get().allPlaces);
-    set({ visiblePlaces: filtered });
+    refetchAfterPause(() => void get().fetchPlaces());
   },
   setMinRating: (val) => {
     set({ minRating: val });
-    const filtered = filterPlacesList(get(), get().allPlaces);
-    set({ visiblePlaces: filtered });
+    void get().fetchPlaces();
   },
   setOpenNow: (val) => {
     set({ openNow: val });
-    const filtered = filterPlacesList(get(), get().allPlaces);
-    set({ visiblePlaces: filtered });
+    void get().fetchPlaces();
   },
-  toggleVibe: (vibe) => {
-    const current = get().selectedVibes;
-    const next = current.includes(vibe) ? current.filter((v) => v !== vibe) : [...current, vibe];
-    set({ selectedVibes: next });
-    const filtered = filterPlacesList(get(), get().allPlaces);
-    set({ visiblePlaces: filtered });
+  toggleFacet: (param, slug) => {
+    const current = get().facets[param] ?? [];
+    const next = current.includes(slug)
+      ? current.filter((item) => item !== slug)
+      : [...current, slug];
+    // Empty groups are dropped rather than kept as [], so the URL and the
+    // request carry only the groups that are actually narrowing anything.
+    const facets = { ...get().facets };
+    if (next.length) facets[param] = next;
+    else delete facets[param];
+    set({ facets });
+    void get().fetchPlaces();
+  },
+  clearFacets: () => {
+    if (!Object.keys(get().facets).length) return;
+    set({ facets: {} });
+    void get().fetchPlaces();
   },
   setRange: (val) => {
     const before = radiusSearch(get());
@@ -314,14 +339,25 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
     if (before || radiusSearch(get())) refetchAfterPause(() => void get().fetchPlaces());
   },
   setListTab: (tab) => {
+    const previous = get().listTab;
+    if (tab === previous) return;
     set({ listTab: tab });
-    const filtered = filterPlacesList(get(), get().allPlaces);
-    set({ visiblePlaces: filtered });
+    // Saved is filtered from what is already loaded; the other two are
+    // different searches, so leaving Saved refetches as well as entering
+    // Trending does.
+    if (tab === "Saved") {
+      set({ visiblePlaces: visibleFor(get(), get().allPlaces) });
+      return;
+    }
+    if (previous === "Saved" && tab === "All") {
+      set({ visiblePlaces: get().allPlaces });
+      return;
+    }
+    void get().fetchPlaces();
   },
   setSortBy: (sort) => {
     set({ sortBy: sort });
-    const filtered = filterPlacesList(get(), get().allPlaces);
-    set({ visiblePlaces: filtered });
+    void get().fetchPlaces();
   },
   toggleSavedPlace: (placeId) => {
     const current = new Set(get().savedPlaceIds);
@@ -332,8 +368,7 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
     }
     set({ savedPlaceIds: current });
     if (get().listTab === "Saved") {
-      const filtered = filterPlacesList(get(), get().allPlaces);
-      set({ visiblePlaces: filtered });
+      set({ visiblePlaces: visibleFor(get(), get().allPlaces) });
     }
   },
   toggleSelectedPlace: (placeId) => {
@@ -398,16 +433,19 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
       await streamChat(
         {
           message: text,
+          category: before.businessType,
           history,
           selected_slug: selected?.slug,
-          restaurant_slugs: before.visiblePlaces.slice(0, 10).map((place) => place.slug),
+          business_slugs: before.visiblePlaces.slice(0, 10).map((place) => place.slug),
           previous_query_string: before.queryString,
         },
         (event) => {
           if (version !== requestVersion) return;
           if (event.type === "status") {
             set({ chatStatus: event.text });
-            if (event.text === "Looking for restaurants…") set({ isLoading: true });
+            // The backend names the type it is searching, e.g. "Looking for
+            // gyms…"; any of them means results are on their way.
+            if (event.text.startsWith("Looking for")) set({ isLoading: true });
           }
           if (event.type === "delta") {
             set((state) => ({
@@ -417,7 +455,9 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
             }));
           }
           if (event.type === "results") {
-            const places = event.results.map(mapRestaurantListItem);
+            const places = event.results.map((item) =>
+              mapPlaceListItem(before.businessType, item),
+            );
             set((state) => ({
               allPlaces: places,
               visiblePlaces: places,
@@ -430,11 +470,10 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
               nextQuery: nextQueryString(event.next),
               hasMore: Boolean(event.next),
               searchPlace: "",
-              searchCategory: "restaurant",
               searchCuisine: "",
               selectedCity: "",
               selectedArea: "",
-              selectedVibes: [],
+              facets: {},
               minRating: 0,
               minBudget: 0,
               maxBudget: BUDGET_MAX,
@@ -493,49 +532,91 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
   },
 
   clearFilters: () => {
-    const hadRadius = Boolean(radiusSearch(get()));
-    set({
-      searchPlace: "",
-      searchCategory: "all",
-      searchCuisine: "",
-      selectedArea: "",
-      selectedCity: "",
-      minBudget: 0,
-      maxBudget: BUDGET_MAX,
-      minRating: 0,
-      openNow: false,
-      selectedVibes: [],
-      range: 0,
-      listTab: DEFAULT_LIST_TAB,
-      sortBy: DEFAULT_SORT,
-    });
+    // Every filter is part of the request now, so clearing any of them means
+    // the widened search has to be asked for again.
+    const before = get();
+    const wasNarrowed =
+      listQueryString(before) !== listQueryString({ ...before, ...CLEARED_FILTERS });
+    set(CLEARED_FILTERS);
     set({ visiblePlaces: get().allPlaces });
-    // The list was narrowed server-side, so it needs refetching to widen again.
-    if (hadRadius) void get().fetchPlaces();
+    if (wasNarrowed) void get().fetchPlaces();
   },
 
   applyUrlFilters: (filters) => {
     // One batched set: going through the individual setters would fire a
     // request per filter before the page has fetched anything at all.
     set(filters);
-    set({ visiblePlaces: filterPlacesList(get(), get().allPlaces) });
+    set({ visiblePlaces: visibleFor(get(), get().allPlaces) });
   },
 
   loadLocations: async () => {
-    if (get().locations.length) return;
+    const type = get().businessType;
+    if (get().locationsType === type) return;
     try {
-      const { cities } = await locationsApi.list();
-      set({ locations: cities });
+      const { cities } = await locationsApi.list(type);
+      // A type switch can resolve after another; only the current one counts.
+      if (get().businessType !== type) return;
+      set({ locations: cities, locationsType: type });
     } catch {
       // The selects fall back to being empty; the map still works off the
       // centre of whatever listings loaded.
     }
   },
 
+  /**
+   * Centre the map on the visitor.
+   *
+   * With `prompt: false` -- how the page loads -- the browser is only asked if
+   * it can answer without a dialog, so arriving at the finder does not throw a
+   * permission prompt in anyone's face. The button in the Location card passes
+   * `prompt: true`, because then they have asked for it.
+   *
+   * A radius already in play is measured from this centre, so granting it
+   * changes the results and they have to be fetched again. An area or city the
+   * visitor picked still wins over it -- see searchCenter.
+   */
+  locateUser: async ({ prompt = true } = {}) => {
+    if (get().geoStatus === "prompting") return;
+    if (!geolocationAvailable()) {
+      set({ geoStatus: "unsupported", geoMessage: null });
+      return;
+    }
+    if (!prompt && (await geolocationPermission()) !== "granted") return;
+
+    set({ geoStatus: "prompting", geoMessage: null });
+    const { status, center, message } = await requestGeolocation();
+    if (!center && !prompt) {
+      // Nobody asked for this one, so nobody should be told it failed. The
+      // button stays as an invitation rather than turning into an error.
+      set({ geoStatus: "idle", geoMessage: null });
+      return;
+    }
+    set({ geoStatus: status, userLocation: center, geoMessage: message ?? null });
+    if (!center) return;
+    // Only a radius search reads the centre; without one the map just moves.
+    if (radiusSearch(get())) void get().fetchPlaces();
+  },
+
+  clearUserLocation: () => {
+    if (!get().userLocation) return;
+    set({ userLocation: null, geoStatus: "idle", geoMessage: null });
+    if (radiusSearch(get())) void get().fetchPlaces();
+  },
+
   initializePlaces: async () => {
     if (get().initialized) return;
     set({ initialized: true, isLoading: true });
-    void get().loadLocations();
+    const locations = get().loadLocations();
+    // Silent: a visitor who allowed this before is centred straight away,
+    // everyone else is left alone until they press the button. Deliberately
+    // not awaited -- a position can take seconds, and the results should not
+    // wait on it; if one arrives while a radius is set, locateUser refetches.
+    void get().locateUser({ prompt: false });
+    // A radius around a city or area from the URL is measured from a centre
+    // that only the locations payload knows, so that one request is worth
+    // waiting for rather than searching the wrong place and correcting.
+    const { selectedCity, selectedArea, range } = get();
+    if (range > 0 && (selectedCity || selectedArea)) await locations;
     await get().fetchPlaces();
   },
 
@@ -551,18 +632,20 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
       nextQuery: null,
     });
     try {
-      const response = await aiRestaurantsApi.list(listQueryString(get()));
+      const type = get().businessType;
+      const response = await aiPlacesApi.list(type, listQueryString(get()));
       if (version !== requestVersion) return;
-      const places = response.results.map(mapRestaurantListItem);
+      const places = response.results.map((item) => mapPlaceListItem(type, item));
       set({
         allPlaces: places,
-        visiblePlaces: filterPlacesList(get(), places),
+        visiblePlaces: visibleFor(get(), places),
         resultCount: response.count,
         nextQuery: nextQueryString(response.next),
         hasMore: Boolean(response.next),
-        // Only an unfiltered response describes where the listings really are;
-        // a radius result would just re-centre on itself and drift.
-        placesCenter: radiusSearch(get())
+        // Only an unnarrowed response describes where this type's listings
+        // really are. A city, area or radius result would re-centre the
+        // fallback on itself and drift away from the rest of the data.
+        placesCenter: isNarrowedSearch(get())
           ? get().placesCenter
           : (centerOfPlaces(places) ?? get().placesCenter),
       });
@@ -573,7 +656,10 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
         visiblePlaces: [],
         resultCount: 0,
         errorSource: "list",
-        error: error instanceof Error ? error.message : "Could not load restaurants.",
+        error:
+          error instanceof Error
+            ? error.message
+            : `Could not load ${businessTypeConfig(get().businessType).plural}.`,
       });
     } finally {
       if (version === requestVersion) set({ isLoading: false });
@@ -586,26 +672,32 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
     const version = requestVersion;
     set({ isLoadingMore: true, error: null });
     try {
-      const response = await aiRestaurantsApi.list(nextQuery);
+      const type = get().businessType;
+      const response = await aiPlacesApi.list(type, nextQuery);
       if (version !== requestVersion) return;
       const places = [
         ...new Map(
-          [...get().allPlaces, ...response.results.map(mapRestaurantListItem)].map((place) => [
-            place.id,
-            place,
-          ]),
+          [
+            ...get().allPlaces,
+            ...response.results.map((item) => mapPlaceListItem(type, item)),
+          ].map((place) => [place.id, place]),
         ).values(),
       ];
       set({
         allPlaces: places,
-        visiblePlaces: filterPlacesList(get(), places),
+        visiblePlaces: visibleFor(get(), places),
         nextQuery: nextQueryString(response.next),
         hasMore: Boolean(response.next),
         resultCount: response.count,
       });
     } catch (error) {
       if (version === requestVersion)
-        set({ error: error instanceof Error ? error.message : "Could not load more restaurants." });
+        set({
+          error:
+            error instanceof Error
+              ? error.message
+              : `Could not load more ${businessTypeConfig(get().businessType).plural}.`,
+        });
     } finally {
       if (version === requestVersion) set({ isLoadingMore: false });
     }

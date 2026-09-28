@@ -1,4 +1,5 @@
-import { apiClient } from "@/lib/backend/api";
+import { apiClient, buildQuery } from "@/lib/backend/api";
+import type { BusinessType } from "@/components/ai-finder/businessTypes";
 
 /** A city or an area, with the middle of its own listings. */
 export interface LocationPlace {
@@ -13,7 +14,15 @@ export interface LocationCity extends LocationPlace {
 }
 
 export const locationsApi = {
-  list: () => apiClient<{ cities: LocationCity[] }>("/locations/"),
+  /**
+   * The cities and areas a visitor can filter by.
+   *
+   * With a `category` the counts and centres cover only that business type,
+   * which is what the finder wants: the centre a gym search measures its
+   * radius from should be where the gyms are, not where every listing is.
+   */
+  list: (category?: BusinessType) =>
+    apiClient<{ cities: LocationCity[] }>(`/locations/${buildQuery({ category })}`),
 };
 
 /**

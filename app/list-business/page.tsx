@@ -20,13 +20,10 @@ import {
   MapPin,
   Palmtree,
   Phone,
-  Plus,
   Send,
   Sparkles,
   Store,
   Tag,
-  Trash2,
-  Upload,
   UtensilsCrossed,
   X,
   Zap,
@@ -34,6 +31,8 @@ import {
 import toast from "react-hot-toast";
 
 import { useListingWizard } from "@/hooks/useListingWizard";
+import { useListingMediaStore } from "@/store/useListingMediaStore";
+import { ListingPhotoUpload } from "@/components/list-business/ListingPhotoUpload";
 import { CATEGORIES, CATEGORY_LIST } from "@/content/listingCategories";
 import { POPULAR_AREAS } from "@/content/discoverFilters";
 import { LiveListingPreview } from "@/components/list-business/LiveListingPreview";
@@ -66,7 +65,6 @@ interface SamplePreset {
   description: string;
   tags: string[];
   facilities: Record<string, boolean>;
-  images: Record<string, string[]>;
 }
 
 const SAMPLE_PRESETS: SamplePreset[] = [
@@ -85,15 +83,6 @@ const SAMPLE_PRESETS: SamplePreset[] = [
       "Charming rooftop garden dining offering panoramic sunset views, artisanal coffee, wood-fired pizzas, and live acoustic music on weekends.",
     tags: ["Rooftop Dining", "Couple Friendly", "Instagrammable", "Live music"],
     facilities: { rooftop: true, parking: true, ac: true, liveMusic: true, reservation: true },
-    images: {
-      food: [
-        "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80",
-        "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80",
-      ],
-      interior: [
-        "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=800&q=80",
-      ],
-    },
   },
   {
     label: "Resort Preset",
@@ -112,14 +101,6 @@ const SAMPLE_PRESETS: SamplePreset[] = [
       "Tranquil nature sanctuary surrounded by sal forests and natural waterbodies. Features private cottages, an infinity pool, boating, and BBQ under the stars.",
     tags: ["Staycation", "Nature Resort", "Family Resort", "Couple Retreat"],
     facilities: { pool: true, villa: true, bbq: true, wifi: true, parking: true },
-    images: {
-      rooms: [
-        "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
-      ],
-      property: [
-        "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80",
-      ],
-    },
   },
   {
     label: "Gym Preset",
@@ -135,11 +116,6 @@ const SAMPLE_PRESETS: SamplePreset[] = [
       "State-of-the-art strength and conditioning facility with imported equipment, certified female trainers, dedicated cardio zone, and shower facilities.",
     tags: ["Female Trainer", "CrossFit", "Beginner Friendly", "Premium Fitness"],
     facilities: { trainer: true, femaleTrainer: true, cardio: true, weights: true, ac: true, shower: true },
-    images: {
-      gym: [
-        "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80",
-      ],
-    },
   },
 ];
 
@@ -160,7 +136,8 @@ export default function ListBusinessPage() {
 
   const [activeSection, setActiveSection] = useState<number>(0);
   const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
-  const [customPhotoUrl, setCustomPhotoUrl] = useState("");
+  const coverImage = useListingMediaStore((s) => s.cover);
+  const galleryImages = useListingMediaStore((s) => s.gallery);
 
   // Google Maps copies "lat, lng" as one string — split it across both boxes.
   const pasteCoordinates = (event: React.ClipboardEvent<HTMLInputElement>) => {
@@ -183,6 +160,20 @@ export default function ListBusinessPage() {
     }
   }, [hydrated, draft.category, updateDraft]);
 
+  // Mirror the picked files into the draft so the live preview and success
+  // screen keep rendering from draft.images. Only the local previews are
+  // mirrored — the files themselves are uploaded straight from the media store.
+  useEffect(() => {
+    updateDraft({
+      images: {
+        ...(coverImage ? { cover: [coverImage.preview] } : {}),
+        ...(galleryImages.length
+          ? { gallery: galleryImages.map((image) => image.preview) }
+          : {}),
+      },
+    });
+  }, [coverImage, galleryImages, updateDraft]);
+
   if (!authHydrated || !hydrated || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -196,8 +187,7 @@ export default function ListBusinessPage() {
   // Check section completion
   const isSection1Complete = !!(draft.category && draft.name.trim() && draft.location.trim());
   const isSection2Complete = !!(draft.hours.trim() && draft.priceMin.trim());
-  const allImages = Object.values(draft.images || {}).flat().filter(Boolean);
-  const isSection3Complete = allImages.length > 0;
+  const isSection3Complete = !!coverImage;
   const isSection4Complete = draft.description.trim().length > 10;
 
   const canPublish = isSection1Complete && isSection2Complete;
@@ -217,34 +207,8 @@ export default function ListBusinessPage() {
       description: preset.description,
       tags: preset.tags,
       facilities: preset.facilities,
-      images: preset.images,
     });
     toast.success(`Applied ${preset.label}!`);
-  };
-
-  const handleAddCustomPhoto = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!customPhotoUrl.trim()) return;
-    const group = cfg?.imageGroups?.[0]?.key || "photos";
-    const current = draft.images?.[group] || [];
-    updateDraft({
-      images: {
-        ...draft.images,
-        [group]: [...current, customPhotoUrl.trim()],
-      },
-    });
-    setCustomPhotoUrl("");
-    toast.success("Photo added to gallery");
-  };
-
-  const handleRemovePhoto = (group: string, index: number) => {
-    const current = draft.images?.[group] || [];
-    updateDraft({
-      images: {
-        ...draft.images,
-        [group]: current.filter((_, i) => i !== index),
-      },
-    });
   };
 
   const handleToggleFacility = (key: string) => {
@@ -786,131 +750,12 @@ export default function ListBusinessPage() {
                     3. Photos & Media Gallery
                   </h2>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Upload photos of your ambiance, food/services, and venue. Listings with photos get 5x more clicks!
+                    Upload one cover photo plus up to 10 gallery shots of your ambiance,
+                    food/services, and venue. Listings with photos get 5x more clicks!
                   </p>
                 </div>
 
-                {/* Upload via URL / Preset Photos */}
-                <div className="rounded-3xl border border-border bg-card p-6 shadow-soft space-y-4">
-                  <h3 className="font-display text-sm font-bold text-foreground">
-                    Add Photo via Image URL
-                  </h3>
-                  <form onSubmit={handleAddCustomPhoto} className="flex gap-2">
-                    <input
-                      type="url"
-                      value={customPhotoUrl}
-                      onChange={(e) => setCustomPhotoUrl(e.target.value)}
-                      placeholder="https://images.unsplash.com/photo-..."
-                      className="flex-1 rounded-xl border border-input bg-background px-4 py-2.5 text-sm text-foreground transition focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
-                    />
-                    <button
-                      type="submit"
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-foreground px-4 py-2.5 text-xs font-semibold text-background transition hover:bg-foreground/90 cursor-pointer"
-                    >
-                      <Plus className="h-4 w-4" /> Add
-                    </button>
-                  </form>
-
-                  {/* Curated Sample Stock Suggestions */}
-                  <div className="pt-2">
-                    <div className="text-xs font-semibold text-muted-foreground">
-                      Or click to quickly add high-res samples:
-                    </div>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {[
-                        {
-                          name: "Ambiance 1",
-                          url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80",
-                        },
-                        {
-                          name: "Ambiance 2",
-                          url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80",
-                        },
-                        {
-                          name: "Interior",
-                          url: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=800&q=80",
-                        },
-                        {
-                          name: "Resort Pool",
-                          url: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
-                        },
-                        {
-                          name: "Gym Floor",
-                          url: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80",
-                        },
-                      ].map((sample) => (
-                        <button
-                          key={sample.name}
-                          type="button"
-                          onClick={() => {
-                            const group = cfg?.imageGroups?.[0]?.key || "photos";
-                            const current = draft.images?.[group] || [];
-                            updateDraft({
-                              images: {
-                                ...draft.images,
-                                [group]: [...current, sample.url],
-                              },
-                            });
-                            toast.success(`Added ${sample.name}`);
-                          }}
-                          className="rounded-lg border border-border bg-muted/60 px-2.5 py-1 text-xs font-medium text-foreground transition hover:border-brand hover:text-brand cursor-pointer"
-                        >
-                          + {sample.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Uploaded Gallery Grid */}
-                <div className="rounded-3xl border border-border bg-card p-6 shadow-soft">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-display text-sm font-bold text-foreground">
-                      Gallery Photos ({allImages.length})
-                    </h3>
-                    <span className="text-xs text-muted-foreground">
-                      First photo is used as main banner
-                    </span>
-                  </div>
-
-                  {allImages.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border py-12 text-center bg-muted/20">
-                      <ImageIcon className="h-10 w-10 text-muted-foreground opacity-40" />
-                      <p className="mt-3 text-sm font-semibold text-foreground">
-                        No photos added yet
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Add an image URL above or pick from high-res samples
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-                      {Object.entries(draft.images || {}).flatMap(([group, urls]) =>
-                        (urls || []).map((url, i) => (
-                          <div
-                            key={`${group}-${i}`}
-                            className="group relative aspect-square overflow-hidden rounded-2xl border border-border bg-muted shadow-soft"
-                          >
-                            <img src={url} alt="" className="h-full w-full object-cover" />
-                            {i === 0 && group === Object.keys(draft.images || {})[0] && (
-                              <span className="absolute bottom-2 left-2 rounded-full bg-brand px-2 py-0.5 text-[9px] font-bold uppercase text-brand-foreground shadow-sm">
-                                Cover
-                              </span>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => handleRemovePhoto(group, i)}
-                              className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white opacity-0 transition group-hover:opacity-100 cursor-pointer hover:bg-destructive"
-                              aria-label="Remove photo"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        )),
-                      )}
-                    </div>
-                  )}
-                </div>
+                <ListingPhotoUpload />
 
                 {/* Section Navigation Buttons */}
                 <div className="flex items-center justify-between">

@@ -69,8 +69,8 @@ export function mapRestaurantListItem(r: RestaurantListItem): Place {
     name: r.name,
     category: "restaurant",
     cuisine: r.cuisine_types.map((c) => c.name).join(" • ") || undefined,
-    location: r.city,
-    area: r.city,
+    location: [r.area, r.city].filter(Boolean).join(", ") || r.city,
+    area: r.area || r.city,
     image: r.cover_photo || FALLBACK_IMAGE,
     gallery: [r.cover_photo || FALLBACK_IMAGE],
     rating: toNumber(r.rating),
@@ -86,6 +86,8 @@ export function mapRestaurantListItem(r: RestaurantListItem): Place {
     trending: r.is_trending,
     coords: toCoords(r.latitude, r.longitude),
     distanceKm: r.distance_km ?? undefined,
+    openNow: r.is_open_now,
+    hasOffer: r.has_offer,
   };
 }
 
@@ -154,8 +156,8 @@ export function mapResortListItem(r: ResortListItem): Place {
     slug: r.slug,
     name: r.name,
     category: "resort",
-    location: r.city,
-    area: r.city,
+    location: [r.area, r.city].filter(Boolean).join(", ") || r.city,
+    area: r.area || r.city,
     image: r.cover_photo || FALLBACK_IMAGE,
     gallery: [r.cover_photo || FALLBACK_IMAGE],
     rating: toNumber(r.rating),
@@ -172,6 +174,8 @@ export function mapResortListItem(r: ResortListItem): Place {
     verified: r.is_verified,
     coords: toCoords(r.latitude, r.longitude),
     distanceKm: r.distance_km ?? undefined,
+    openNow: r.is_open_now,
+    hasOffer: r.has_offer,
   };
 }
 

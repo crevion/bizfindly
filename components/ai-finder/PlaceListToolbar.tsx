@@ -1,6 +1,6 @@
 "use client";
 
-import { selectAllCount, usePlaceFinderStore } from "./usePlaceFinderStore";
+import { selectResultCount, usePlaceFinderStore } from "./usePlaceFinderStore";
 import { LIST_TABS, SORT_OPTIONS, type ListTab, type SortOption } from "./constants";
 import { CustomSelect } from "@/components/common/CustomSelect";
 import { SlidersHorizontal } from "lucide-react";
@@ -10,7 +10,8 @@ export function PlaceListToolbar() {
   const setListTab = usePlaceFinderStore((s) => s.setListTab);
   const sortBy = usePlaceFinderStore((s) => s.sortBy);
   const setSortBy = usePlaceFinderStore((s) => s.setSortBy);
-  const allCount = usePlaceFinderStore(selectAllCount);
+  const resultCount = usePlaceFinderStore(selectResultCount);
+  const range = usePlaceFinderStore((s) => s.range);
 
   return (
     <div className="flex items-center justify-between gap-3 flex-wrap pb-1">
@@ -27,9 +28,9 @@ export function PlaceListToolbar() {
             }`}
           >
             {tab}
-            {tab === "All" && (
-              <span className="ml-1.5 opacity-70">({allCount})</span>
-            )}
+            {/* The count belongs to whichever tab is open: each is a
+                different search, so it would be wrong under the others. */}
+            {listTab === tab && <span className="ml-1.5 opacity-70">({resultCount})</span>}
           </button>
         ))}
       </div>
@@ -37,7 +38,11 @@ export function PlaceListToolbar() {
       <div className="flex items-center gap-2">
         <CustomSelect
           value={sortBy}
-          options={[...SORT_OPTIONS]}
+          // Nearest first is the radius search's own ordering, so it is only
+          // on offer once a radius is set.
+          options={SORT_OPTIONS.filter(
+            (option) => option !== "Nearest First" || range > 0,
+          ).map((option) => option as string)}
           onChange={(val) => setSortBy(val as SortOption)}
           icon={<SlidersHorizontal size={13} />}
           triggerClassName="h-9 px-3.5 rounded-xl border border-border bg-white text-xs font-semibold text-foreground shadow-soft min-w-[170px]"

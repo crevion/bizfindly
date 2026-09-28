@@ -3,12 +3,15 @@ import type { NamedSlug } from "@/lib/backend/api";
 export type BudgetTier = "budget" | "mid_range" | "premium" | "luxury";
 
 export interface RestaurantListItem {
+  is_open_now: boolean | null;
+  has_offer: boolean;
   is_trending: boolean;
   name: string;
   slug: string;
   views?: number;
   cover_photo: string | null;
   city: string;
+  area: string;
   rating: string;
   review_count: number;
   cuisine_types: NamedSlug[];

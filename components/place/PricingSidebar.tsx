@@ -4,16 +4,18 @@ import { SavePlaceButton } from "@/components/common/SavePlaceButton";
 import { OpeningHours } from "./OpeningHours";
 import { Clock, Globe, MapPin, Phone } from "lucide-react";
 import { directionsUrl, mapEmbedUrl, mapLinkUrl } from "@/lib/maps";
+import { singleSymbolPrice } from "@/lib/backend/places/price";
 import type { Place } from "@/types/place";
 
 export function PricingSidebar({ place }: { place: Place }) {
   const embedSrc = mapEmbedUrl(place);
+  const price = singleSymbolPrice(place.priceRange);
   return (
     <div className="bg-card shadow-card rounded-3xl p-6">
       <div className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
         Pricing
       </div>
-      <div className="font-display mt-1 text-2xl font-bold">{place.priceRange}</div>
+      {price && <div className="font-display mt-1 text-2xl font-bold">{price}</div>}
 
       <div className="mt-6 space-y-3 text-sm">
         <div className="flex items-start gap-3">

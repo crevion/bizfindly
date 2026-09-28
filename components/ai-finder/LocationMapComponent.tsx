@@ -7,10 +7,13 @@ import { searchCenter } from "./radiusSearch";
 import { CustomSelect } from "@/components/common/CustomSelect";
 import { loadGoogleMaps, svgMarkerIcon } from "@/lib/googleMaps";
 import type { Place } from "@/types/place";
-import { Building2, MapPin } from "lucide-react";
+import { Building2, LocateFixed, MapPin } from "lucide-react";
+import { businessTypeConfig } from "./businessTypes";
+import { BusinessTypeIcon } from "./BusinessTypeSelect";
+import { createMapTooltip, cursorOf, tooltipContent, type MapTooltip } from "./mapTooltip";
+import { singleSymbolPrice } from "@/lib/backend/places/price";
+import { geoStatusNotice } from "./geolocation";
 
-const INDIGO = "#e60b1d";
-const INDIGO_LIGHT = "#ffbebe";
 const MAP_BG = "#EEF0F8";
 const RANGE_MARKS = [0, 5, 10, 25, 50, 100];
 
@@ -21,13 +24,15 @@ const MAP_STYLE: google.maps.MapTypeStyle[] = [
   { featureType: "transit", stylers: [{ visibility: "off" }] },
 ];
 
-const PIN_SVG = `<svg width="28" height="36" viewBox="0 0 28 36" xmlns="http://www.w3.org/2000/svg">
-  <path d="M14 0C6.268 0 0 6.268 0 14c0 9.9 14 22 14 22S28 23.9 28 14C28 6.268 21.732 0 14 0z" fill="${INDIGO}"/>
+// Both pins take the current business type's colour, so switching type is
+// visible on the map itself and not just in the list beside it.
+const pinSvg = (color: string) => `<svg width="28" height="36" viewBox="0 0 28 36" xmlns="http://www.w3.org/2000/svg">
+  <path d="M14 0C6.268 0 0 6.268 0 14c0 9.9 14 22 14 22S28 23.9 28 14C28 6.268 21.732 0 14 0z" fill="${color}"/>
   <circle cx="14" cy="14" r="5" fill="white"/>
 </svg>`;
 
-const DOT_SVG = `<svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="9" cy="9" r="7" fill="${INDIGO}" stroke="#fff" stroke-width="2"/>
+const dotSvg = (color: string) => `<svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="9" cy="9" r="7" fill="${color}" stroke="#fff" stroke-width="2"/>
 </svg>`;
 
 function RangeSlider({
@@ -100,21 +105,88 @@ function MapInner({
   range,
   unit,
   places,
+  color,
+  centerLabel,
+  typeLabel,
+  centeredOnUser,
 }: {
   center: [number, number];
   range: number;
   unit: "km" | "miles";
   places: Place[];
+  color: string;
+  /** What the radius is measured from, for the circle's tooltip. */
+  centerLabel: string;
+  /** Plural noun for the listings being shown, e.g. "resorts". */
+  typeLabel: string;
+  /** Whether the centre pin is standing on the visitor themselves. */
+  centeredOnUser: boolean;
 }) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const circleRef = useRef<google.maps.Circle | null>(null);
   const centerMarkerRef = useRef<google.maps.Marker | null>(null);
   const pointMarkersRef = useRef<google.maps.Marker[]>([]);
+  const tooltipRef = useRef<MapTooltip | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const rangeInKm = unit === "miles" ? range * 1.60934 : range;
+
+  // One tooltip for every overlay on the map, created before the map itself so
+  // the effects that attach hover handlers can rely on it being there.
+  useEffect(() => {
+    tooltipRef.current = createMapTooltip();
+    return () => {
+      tooltipRef.current?.destroy();
+      tooltipRef.current = null;
+    };
+  }, []);
+
+  // The circle and the centre pin are created once, but what their tooltips say
+  // changes with the radius, the unit, the business type and how many results
+  // came back. Reading the builder through a ref keeps the handlers attached at
+  // setup from closing over the first render's values.
+  const pinnedCount = places.filter((place) => place.coords).length;
+  const emptyNode = () => document.createElement("div");
+  const circleTooltipRef = useRef<() => HTMLElement>(emptyNode);
+  const centerTooltipRef = useRef<() => HTMLElement>(emptyNode);
+
+  useEffect(() => {
+    circleTooltipRef.current = () =>
+      tooltipContent({
+        title: "Search radius",
+        subtitle: `Within ${range} ${unit} of ${centerLabel}`,
+        facts: [
+          `${pinnedCount} ${pinnedCount === 1 ? typeLabel.replace(/s$/, "") : typeLabel} on map`,
+        ],
+        accent: color,
+      });
+    centerTooltipRef.current = () =>
+      tooltipContent({
+        title: centeredOnUser ? "You are here" : centerLabel,
+        subtitle:
+          range > 0
+            ? `Centre of the ${range} ${unit} search`
+            : `Middle of the ${typeLabel} shown`,
+        accent: color,
+      });
+  }, [range, unit, centerLabel, typeLabel, pinnedCount, color, centeredOnUser]);
+
+  /** Hover handlers for one overlay, given what its tooltip should say. */
+  const hoverTooltip = (build: () => HTMLElement, followCursor = false) => ({
+    onOver: (event: google.maps.MapMouseEvent) => {
+      const at = cursorOf(event);
+      if (at) tooltipRef.current?.show(build(), at);
+    },
+    onMove: followCursor
+      ? (event: google.maps.MapMouseEvent) => {
+          const at = cursorOf(event);
+          if (at) tooltipRef.current?.moveTo(at);
+        }
+      : undefined,
+    onOut: () => tooltipRef.current?.hide(),
+  });
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
@@ -138,7 +210,7 @@ function MapInner({
         centerMarkerRef.current = new maps.Marker({
           position,
           map,
-          icon: svgMarkerIcon(PIN_SVG, { width: 28, height: 36 }, { x: 14, y: 36 }),
+          icon: svgMarkerIcon(pinSvg(color), { width: 28, height: 36 }, { x: 14, y: 36 }),
           zIndex: 10,
         });
 
@@ -148,11 +220,22 @@ function MapInner({
           // "Any" range filters nothing, so drawing a circle would be a lie.
           visible: rangeInKm > 0,
           map,
-          strokeColor: INDIGO,
+          strokeColor: color,
           strokeWeight: 1.5,
-          fillColor: INDIGO_LIGHT,
-          fillOpacity: 0.15,
+          fillColor: color,
+          fillOpacity: 0.12,
         });
+
+        // The circle covers a large area, so its tooltip follows the cursor
+        // rather than sitting wherever the pointer first crossed the edge.
+        const circleHover = hoverTooltip(() => circleTooltipRef.current(), true);
+        circleRef.current.addListener("mouseover", circleHover.onOver);
+        circleRef.current.addListener("mousemove", circleHover.onMove!);
+        circleRef.current.addListener("mouseout", circleHover.onOut);
+
+        const centerHover = hoverTooltip(() => centerTooltipRef.current());
+        centerMarkerRef.current.addListener("mouseover", centerHover.onOver);
+        centerMarkerRef.current.addListener("mouseout", centerHover.onOut);
 
         mapInstanceRef.current = map;
         setMapReady(true);
@@ -193,6 +276,15 @@ function MapInner({
     circleRef.current?.setVisible(rangeInKm > 0);
   }, [rangeInKm]);
 
+  // A type switch repaints what is already on the map; the place markers are
+  // rebuilt by the effect below, which also depends on `color`.
+  useEffect(() => {
+    circleRef.current?.setOptions({ strokeColor: color, fillColor: color });
+    centerMarkerRef.current?.setIcon(
+      svgMarkerIcon(pinSvg(color), { width: 28, height: 36 }, { x: 14, y: 36 }),
+    );
+  }, [color]);
+
   // One marker per place that has been pinned to real coordinates.
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -201,22 +293,50 @@ function MapInner({
     pointMarkersRef.current.forEach((marker) => marker.setMap(null));
     pointMarkersRef.current = [];
 
-    const icon = svgMarkerIcon(DOT_SVG, { width: 18, height: 18 }, { x: 9, y: 9 });
+    const icon = svgMarkerIcon(dotSvg(color), { width: 18, height: 18 }, { x: 9, y: 9 });
 
     places.forEach((place) => {
       if (!place.coords) return;
-      // `title` is Google's own hover tooltip.
-      const away = place.distanceKm != null ? ` · ${place.distanceKm.toFixed(1)} km away` : "";
-      pointMarkersRef.current.push(
-        new google.maps.Marker({
-          position: place.coords,
-          map,
-          icon,
-          title: `${place.name} · ${place.area}${away}`,
+      const marker = new google.maps.Marker({
+        position: place.coords,
+        map,
+        icon,
+        // No `title`: that is Google's own hover tooltip, and it would show
+        // alongside the Tippy one below.
+      });
+
+      const hover = hoverTooltip(() =>
+        tooltipContent({
+          title: place.name,
+          subtitle: [place.cuisine, place.area].filter(Boolean).join(" · ") || place.location,
+          facts: [
+            place.rating ? `★ ${place.rating.toFixed(1)}` : null,
+            place.reviews ? `${place.reviews.toLocaleString()} reviews` : null,
+            singleSymbolPrice(place.priceRange) || null,
+            place.distanceKm != null ? `${place.distanceKm.toFixed(1)} km away` : null,
+          ],
+          accent: color,
         }),
       );
+      marker.addListener("mouseover", hover.onOver);
+      marker.addListener("mouseout", hover.onOut);
+      // A click leaves the pin behind, so the tooltip should not linger.
+      marker.addListener("click", hover.onOut);
+
+      pointMarkersRef.current.push(marker);
     });
-  }, [places, mapReady]);
+
+    return () => {
+      // Markers are rebuilt whenever the results change; drop their listeners
+      // with them so the old ones cannot fire at a destroyed tooltip.
+      pointMarkersRef.current.forEach((marker) => {
+        google.maps.event.clearInstanceListeners(marker);
+        marker.setMap(null);
+      });
+      pointMarkersRef.current = [];
+      tooltipRef.current?.hide();
+    };
+  }, [places, mapReady, color]);
 
   if (loadError) {
     return (
@@ -250,12 +370,27 @@ export function LocationMapComponent() {
   const visiblePlaces = usePlaceFinderStore((s) => s.visiblePlaces);
   const placesCenter = usePlaceFinderStore((s) => s.placesCenter);
   const locations = usePlaceFinderStore((s) => s.locations);
+  const businessType = usePlaceFinderStore((s) => s.businessType);
+  const userLocation = usePlaceFinderStore((s) => s.userLocation);
+  const geoStatus = usePlaceFinderStore((s) => s.geoStatus);
+  const geoMessage = usePlaceFinderStore((s) => s.geoMessage);
+  const locateUser = usePlaceFinderStore((s) => s.locateUser);
+  const clearUserLocation = usePlaceFinderStore((s) => s.clearUserLocation);
+
+  const geoNotice = geoStatusNotice(geoStatus, geoMessage ?? undefined);
+
+  const typeConfig = businessTypeConfig(businessType);
 
   // Only the areas of the chosen city; with no city chosen, every area there is.
   const areaOptions = useMemo(() => {
     const city = locations.find((c) => c.name.toLowerCase() === selectedCity.toLowerCase());
     return city ? city.areas : locations.flatMap((entry) => entry.areas);
   }, [locations, selectedCity]);
+
+  const pinnedCount = useMemo(
+    () => visiblePlaces.filter((place) => place.coords).length,
+    [visiblePlaces],
+  );
 
   const [mounted, setMounted] = useState(false);
 
@@ -269,27 +404,53 @@ export function LocationMapComponent() {
     const center = searchCenter({
       selectedCity,
       selectedArea,
+      userLocation,
       placesCenter,
       locations,
       range: 0,
       unit: "km",
     });
     return [center.lat, center.lng];
-  }, [selectedCity, selectedArea, placesCenter, locations]);
+  }, [selectedCity, selectedArea, userLocation, placesCenter, locations]);
+
+  // Whether the pin is standing on the visitor rather than on a place they
+  // picked, which changes what its tooltip should say.
+  const centeredOnUser = Boolean(userLocation && !selectedArea && !selectedCity);
 
   return (
     <div className="relative z-[1] w-full h-[314px] max-sm:flex max-sm:flex-col max-sm:gap-3 max-sm:h-auto">
       <div className="absolute inset-0 overflow-hidden rounded-2xl max-sm:relative max-sm:h-[200px] max-sm:shrink-0 bg-[#ECEEF8]">
         {mounted && (
-          <MapInner center={position} range={range} unit={unit} places={visiblePlaces} />
+          <MapInner
+            center={position}
+            range={range}
+            unit={unit}
+            places={visiblePlaces}
+            color={typeConfig.markerColor}
+            centerLabel={
+              selectedArea || selectedCity || (centeredOnUser ? "your location" : "these listings")
+            }
+            typeLabel={typeConfig.plural}
+            centeredOnUser={centeredOnUser}
+          />
         )}
         <div className="absolute inset-0 pointer-events-none bg-brand/5" />
       </div>
 
       <div className="absolute top-4 left-4 w-full max-w-[440px] px-2 sm:px-0 z-[1000] max-sm:relative max-sm:top-auto max-sm:left-auto max-sm:px-0 max-sm:shrink-0">
         <div className="bg-white rounded-2xl p-5 flex flex-col gap-4 shadow-card border border-border">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <span className="text-gray-900 font-semibold text-base">Location & Area</span>
+            <span
+              className="flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold"
+              style={{
+                color: typeConfig.markerColor,
+                backgroundColor: `${typeConfig.markerColor}14`,
+              }}
+            >
+              <BusinessTypeIcon type={businessType} size={11} />
+              {pinnedCount} {typeConfig.plural} on map
+            </span>
           </div>
 
           <div className="flex gap-2">
@@ -315,6 +476,47 @@ export function LocationMapComponent() {
               menuClassName="w-full"
             />
           </div>
+
+          {geoStatus !== "unsupported" && (
+            <div className="flex flex-wrap items-center justify-between gap-2 -mt-1">
+              <button
+                type="button"
+                onClick={() => (centeredOnUser ? clearUserLocation() : void locateUser())}
+                disabled={geoStatus === "prompting"}
+                className={`flex h-8 items-center gap-1.5 rounded-xl border px-2.5 text-xs font-semibold transition cursor-pointer disabled:cursor-wait disabled:opacity-60 ${
+                  centeredOnUser
+                    ? "border-brand bg-brand-soft text-brand"
+                    : "border-border bg-gray-50 text-foreground hover:border-brand/40"
+                }`}
+              >
+                <LocateFixed size={13} />
+                {geoStatus === "prompting"
+                  ? "Locating…"
+                  : centeredOnUser
+                    ? "Using my location"
+                    : geoNotice
+                      ? "Try again"
+                      : "Use my location"}
+              </button>
+              {/* A city or area the visitor picked outranks their position, so
+                  say so rather than leaving the button looking broken. */}
+              {userLocation && !centeredOnUser && (
+                <span className="text-muted-foreground text-[11px]">
+                  {selectedArea || selectedCity} selected
+                </span>
+              )}
+              {/* What to do on screen; the browser's own wording, which names
+                  the real cause, on hover. */}
+              {geoNotice && (
+                <span
+                  title={[geoNotice.text, geoNotice.detail].filter(Boolean).join(" — ")}
+                  className="text-muted-foreground min-w-0 flex-1 text-right text-[11px] leading-tight"
+                >
+                  {geoNotice.text}
+                </span>
+              )}
+            </div>
+          )}
 
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">

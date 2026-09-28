@@ -1,11 +1,21 @@
 import type { NamedSlug } from "@/lib/backend/api";
 
+export interface GalleryImage {
+  id?: number;
+  image: string;
+  caption: string;
+  order: number;
+}
+
 export interface ResortListItem {
+  is_open_now: boolean | null;
+  has_offer: boolean;
   is_trending: boolean;
   is_verified: boolean;
   name: string;
   slug: string;
   city: string;
+  area: string;
   cover_photo: string | null;
   rating: string;
   review_count: number;

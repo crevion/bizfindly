@@ -31,6 +31,15 @@ export interface Place {
   mapUrl?: string;
   /** Kilometres from the search centre, when the request had one. */
   distanceKm?: number;
+  /**
+   * Whether the place is open at this moment, per its opening hours.
+   *
+   * null when it records none that can be read -- which is not the same as
+   * being shut, so the card shows no badge rather than "Closed".
+   */
+  openNow?: boolean | null;
+  /** Whether it is running an offer, without the list payload carrying one. */
+  hasOffer?: boolean;
   menu?: {
     category: string;
     items: {

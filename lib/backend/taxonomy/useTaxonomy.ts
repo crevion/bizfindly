@@ -10,6 +10,8 @@ export type TaxonomyKind =
   | "vibes"
   | "cuisines"
   | "groupTypes"
+  | "genderTargets"
+  | "mainGoals"
   | "businessTypes"
   | "tags"
   | "facilities";
@@ -45,6 +47,10 @@ function loaderFor(kind: TaxonomyKind, businessType?: BusinessTypeSlug): Promise
       return fetchAll(taxonomyApi.cuisines);
     case "groupTypes":
       return fetchAll(taxonomyApi.groupTypes);
+    case "genderTargets":
+      return fetchAll(taxonomyApi.genderTargets);
+    case "mainGoals":
+      return fetchAll(taxonomyApi.mainGoals);
     case "businessTypes":
       return fetchAll(taxonomyApi.businessTypes);
     case "tags":

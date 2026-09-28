@@ -14,6 +14,13 @@ export const taxonomyApi = {
   groupTypes: (params: TaxonomyParams = {}) =>
     apiClient<Paginated<NamedSlug>>(`/group-types/${buildQuery(params)}`),
 
+  // Gym-only taxonomies: who a gym is for, and what people train there for.
+  genderTargets: (params: TaxonomyParams = {}) =>
+    apiClient<Paginated<NamedSlug>>(`/gender-targets/${buildQuery(params)}`),
+
+  mainGoals: (params: TaxonomyParams = {}) =>
+    apiClient<Paginated<NamedSlug>>(`/main-goals/${buildQuery(params)}`),
+
   businessTypes: (params: TaxonomyParams = {}) =>
     apiClient<Paginated<BusinessType>>(`/business-types/${buildQuery(params)}`),
 

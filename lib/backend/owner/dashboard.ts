@@ -36,6 +36,11 @@ export interface OwnerReview {
   created_at: string;
   owner_reply: string;
 }
+export interface AiDescription {
+  slug: string;
+  category: string;
+  description: string;
+}
 export interface OwnerPhoto {
   id: number;
   image: string;
@@ -67,6 +72,12 @@ export const dashboardApi = {
     apiClient<Paginated<OwnerPhoto>>(`${dashboardPath(listing)}gallery/?page=${page}`, {
       headers: authHeader(),
     }),
+  // Writes nothing: the owner reviews the text and saves the listing themselves.
+  aiDescription: (listing: Pick<DashboardListing, "slug">) =>
+    apiClient<AiDescription>(
+      `/owner/businesses/${encodeURIComponent(listing.slug)}/ai-description/`,
+      { method: "POST", headers: authHeader() },
+    ),
   change: (
     listing: DashboardListing,
     suffix: string,

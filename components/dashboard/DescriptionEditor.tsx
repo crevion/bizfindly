@@ -3,13 +3,19 @@
 import { useEffect, useState } from "react";
 import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { useMutation } from "@tanstack/react-query";
+import { Sparkles } from "lucide-react";
+import toast from "react-hot-toast";
+import { dashboardApi } from "@/lib/backend/owner/dashboard";
 import { descriptionHtml, richTextClass } from "@/lib/richText";
 
 export default function DescriptionEditor({
   value,
+  slug,
   disabled,
 }: {
   value: string;
+  slug: string;
   disabled: boolean;
 }) {
   const [html, setHtml] = useState(value);
@@ -46,12 +52,38 @@ export default function DescriptionEditor({
       ordered: editor?.isActive("orderedList"),
     }),
   });
+  const generate = useMutation({
+    mutationFn: () => dashboardApi.aiDescription({ slug }),
+    onSuccess: ({ description }) => {
+      if (!editor) return;
+      editor.chain().focus().setContent(descriptionHtml(description)).run();
+      setHtml(editor.isEmpty ? "" : editor.getHTML());
+      toast.success("Description generated — Undo brings back your old text.");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+  const generating = generate.isPending;
   useEffect(() => {
-    editor?.setEditable(!disabled);
-  }, [editor, disabled]);
+    editor?.setEditable(!disabled && !generating);
+  }, [editor, disabled, generating]);
   return (
     <div>
-      <p className="mb-1 text-sm font-medium">Description</p>
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm font-medium">Description</p>
+        <button
+          type="button"
+          disabled={disabled || generating || !editor}
+          onClick={() => generate.mutate()}
+          className="border-border hover:bg-muted flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold disabled:opacity-50"
+        >
+          <Sparkles className={`h-3.5 w-3.5 ${generating ? "animate-pulse" : ""}`} />
+          {generating ? "Generating…" : "Generate with AI"}
+        </button>
+      </div>
+      <p className="text-muted-foreground mb-2 text-xs">
+        Writes a description from your listing details. Nothing is saved until you save the
+        listing.
+      </p>
       <input type="hidden" name="description" value={html} />
       <div className="border-border bg-background overflow-hidden rounded-xl border">
         <div
@@ -91,7 +123,7 @@ export default function DescriptionEditor({
             <button
               type="button"
               key={action.label}
-              disabled={disabled || !editor}
+              disabled={disabled || generating || !editor}
               aria-pressed={action.active}
               onClick={action.run}
               className={`rounded px-2 py-1 text-xs font-semibold disabled:opacity-40 ${action.active ? "bg-foreground text-background" : "hover:bg-muted"}`}
