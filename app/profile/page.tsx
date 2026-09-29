@@ -8,7 +8,7 @@ import { OwnerProfileSection } from "@/components/profile/OwnerProfileSection";
 
 const items = [
   { label: "Saved places", icon: Heart, to: "/saved" },
-  { label: "My reviews", icon: Star, to: "/profile" },
+  { label: "My reviews", icon: Star, to: "/my-reviews" },
   { label: "Recommendation history", icon: History, to: "/ai-discover" },
   { label: "List your business", icon: Store, to: "/list-business" },
   { label: "Owner dashboard", icon: Settings, to: "/dashboard" },

@@ -6,8 +6,9 @@ import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-q
 import { Star } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuthStore } from "@/lib/backend/auth";
-import { reviewsApi } from "@/lib/backend/reviews";
+import { reviewsApi, useMyReviewFor, useReviewActions } from "@/lib/backend/reviews";
 import { mapReview } from "@/lib/backend/places";
+import { MyReviewCard } from "@/components/reviews/MyReviewCard";
 import type { Place } from "@/types/place";
 import { ReviewList } from "./PlaceBodySections";
 
@@ -21,6 +22,10 @@ export function PlaceReviews({ place }: { place: Place }) {
   const [error, setError] = useState("");
   const submitting = useRef(false);
   const key = ["place-reviews", place.category, place.slug];
+  // Everybody gets one review per business, so the page either offers the form
+  // or the review this person already left — never both.
+  const { review: myReview, loading: myReviewLoading } = useMyReviewFor(place.category, place.slug);
+  const actions = useReviewActions();
   const query = useInfiniteQuery({
     queryKey: key,
     initialPageParam: 1,
@@ -43,6 +48,8 @@ export function PlaceReviews({ place }: { place: Place }) {
       toast.success("Your review has been published.");
       await Promise.all([
         client.invalidateQueries({ queryKey: key }),
+        client.invalidateQueries({ queryKey: ["my-review"] }),
+        client.invalidateQueries({ queryKey: ["my-reviews"] }),
         client.invalidateQueries({ queryKey: ["place-detail", place.slug] }),
         client.invalidateQueries({ queryKey: ["dashboard"] }),
       ]);
@@ -51,6 +58,14 @@ export function PlaceReviews({ place }: { place: Place }) {
   });
   const signIn = () =>
     router.push(`/join?next=${encodeURIComponent(`/place/${place.slug}#reviews`)}`);
+  // The pinned card above already shows it; a second copy in the feed reads as
+  // though the review was submitted twice.
+  const others = (query.data?.pages.flatMap((page) => page.results) ?? []).filter(
+    (review) => review.id !== myReview?.id,
+  );
+  // With nothing but your own pinned review, the list would otherwise invite you
+  // to "be the first to share your experience" directly underneath it.
+  const showList = Boolean(query.data) && (others.length > 0 || !myReview);
   return (
     <section id="reviews" className="mt-10 scroll-mt-24">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -60,23 +75,41 @@ export function PlaceReviews({ place }: { place: Place }) {
             <span className="text-muted-foreground"> ({query.data.pages[0].count})</span>
           )}
         </h2>
-        <button
-          type="button"
-          disabled={!hydrated || mutation.isPending}
-          onClick={() => {
-            if (!user || !token) {
-              signIn();
-              return;
-            }
-            setOpen(true);
-            setError("");
-          }}
-          className="bg-foreground text-background rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-50"
-        >
-          Write a review
-        </button>
+        {!myReview && (
+          <button
+            type="button"
+            disabled={!hydrated || myReviewLoading || mutation.isPending}
+            onClick={() => {
+              if (!user || !token) {
+                signIn();
+                return;
+              }
+              setOpen(true);
+              setError("");
+            }}
+            className="bg-foreground text-background rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-50"
+          >
+            Write a review
+          </button>
+        )}
       </div>
-      {open && user && token && (
+      {myReview && (
+        <div className="mt-4">
+          <MyReviewCard
+            review={myReview}
+            showBusiness={false}
+            error={actions.errorFor(myReview.id)}
+            saving={actions.isSaving(myReview.id)}
+            deleting={actions.isDeleting(myReview.id)}
+            onSave={(values) => actions.save(myReview, values)}
+            onDelete={() => actions.remove(myReview)}
+          />
+          <p className="text-muted-foreground mt-2 text-xs">
+            You can leave one review per place. Edit yours above to change your rating.
+          </p>
+        </div>
+      )}
+      {open && !myReview && user && token && (
         <form
           className="border-border bg-card mt-4 space-y-4 rounded-3xl border p-5"
           onSubmit={async (event) => {
@@ -166,9 +199,7 @@ export function PlaceReviews({ place }: { place: Place }) {
           </button>
         </p>
       )}
-      {query.data && (
-        <ReviewList reviews={query.data.pages.flatMap((page) => page.results).map(mapReview)} />
-      )}
+      {showList && <ReviewList reviews={others.map(mapReview)} />}
       {query.hasNextPage && (
         <button
           disabled={query.isFetchingNextPage}
