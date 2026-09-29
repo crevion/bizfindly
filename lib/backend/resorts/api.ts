@@ -1,6 +1,7 @@
 import { apiClient, buildQuery, type Paginated } from "@/lib/backend/api";
 import { authHeader } from "@/lib/backend/auth/tokens";
 import type {
+  GalleryImage,
   OwnerResort,
   ResortDetail,
   ResortInput,
@@ -39,6 +40,31 @@ export const resortsApi = {
 
   remove: (slug: string) =>
     apiClient<void>(`/owner/resorts/${slug}/`, {
+      method: "DELETE",
+      headers: authHeader(),
+    }),
+
+  uploadCoverPhoto: (slug: string, data: FormData) =>
+    apiClient<{ cover_photo: string }>(`/owner/resorts/${slug}/cover-photo/`, {
+      method: "POST",
+      body: data,
+      headers: authHeader(),
+    }),
+
+  listGalleryImages: (slug: string) =>
+    apiClient<GalleryImage[]>(`/owner/resorts/${slug}/gallery/`, {
+      headers: authHeader(),
+    }),
+
+  uploadGalleryImage: (slug: string, data: FormData) =>
+    apiClient<GalleryImage>(`/owner/resorts/${slug}/gallery/`, {
+      method: "POST",
+      body: data,
+      headers: authHeader(),
+    }),
+
+  deleteGalleryImage: (slug: string, id: number) =>
+    apiClient<void>(`/owner/resorts/${slug}/gallery/${id}/`, {
       method: "DELETE",
       headers: authHeader(),
     }),

@@ -2,9 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import toast from "react-hot-toast";
 import { useAuthStore } from "@/lib/backend/auth";
 import { ApiError } from "@/lib/backend/api";
 import { createListingFromDraft } from "@/lib/backend/places/createListing";
+import { uploadListingMedia } from "@/lib/backend/places/listingMedia";
+import { useListingMediaStore } from "@/store/useListingMediaStore";
 import { useListingStore } from "@/store/useListingStore";
 import { useVerificationStore } from "@/store/useVerificationStore";
 import { LISTING_STEPS } from "@/content/listingSteps";
@@ -23,6 +26,9 @@ export function useListingWizard() {
   const hydrated = useListingStore((s) => s.hydrated);
   const publishListing = useListingStore((s) => s.publishListing);
   const submitClaim = useVerificationStore((s) => s.submitClaim);
+  const cover = useListingMediaStore((s) => s.cover);
+  const gallery = useListingMediaStore((s) => s.gallery);
+  const detachMedia = useListingMediaStore((s) => s.detach);
 
   const [publishState, setPublishState] = useState<PublishState>("idle");
   const [publishedId, setPublishedId] = useState<string | null>(null);
@@ -71,11 +77,26 @@ export function useListingWizard() {
       if (draft.category === "restaurant" || draft.category === "resort") {
         const created = await createListingFromDraft(draft);
         slug = created?.slug;
+        // Photos go up after the listing exists: the cover fills the single
+        // cover_photo field and each gallery photo is its own upload.
+        if (slug && (cover || gallery.length)) {
+          const media = await uploadListingMedia(draft.category, slug, {
+            cover: cover?.file ?? null,
+            gallery: gallery.map((image) => image.file),
+          });
+          if (media.failures.length) {
+            toast.error(
+              `Your listing is live, but ${media.failures.length} photo(s) failed to upload. ` +
+                "You can add them again from your dashboard.",
+            );
+          }
+        }
       } else {
         await new Promise((r) => setTimeout(r, 700));
       }
 
       const final = publishListing();
+      detachMedia();
       setPublished({ ...final, slug: slug ?? final.slug });
       if (user && final.id) {
         try {

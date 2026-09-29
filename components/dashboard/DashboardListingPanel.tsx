@@ -270,7 +270,11 @@ export function DashboardListingPanel({ listing }: { listing: DashboardListing }
                       into either box fills both.
                     </p>
                     <OpeningHoursFields value={data.opening_hours} category={data.category} />
-                    <DescriptionEditor value={data.description} disabled={pending} />
+                    <DescriptionEditor
+                      value={data.description}
+                      slug={data.slug}
+                      disabled={pending}
+                    />
                     <button className={buttonClass}>{pending ? "Saving…" : "Save listing"}</button>
                   </fieldset>
                 </form>

@@ -6,6 +6,11 @@ export {
   mapReview,
 } from "./map";
 export {
+  uploadListingMedia,
+  type ListingMediaFiles,
+  type ListingMediaResult,
+} from "./listingMedia";
+export {
   listPlaces,
   getPlace,
   getPlaceReviews,

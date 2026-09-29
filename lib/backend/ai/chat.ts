@@ -1,19 +1,22 @@
 import type { Paginated } from "@/lib/backend/api";
 import { extractErrorMessage } from "@/lib/backend/api/errors";
-import type { RestaurantListItem } from "@/lib/backend/restaurants";
+import type { PlaceListItem } from "@/lib/backend/ai/api";
+import type { BusinessType } from "@/components/ai-finder/businessTypes";
 
 export type ChatEvent =
   | { type: "status"; text: string }
   | { type: "delta"; text: string }
-  | ({ type: "results"; query_string: string } & Paginated<RestaurantListItem>)
+  | ({ type: "results"; query_string: string } & Paginated<PlaceListItem>)
   | { type: "error"; message: string }
   | { type: "done" };
 
 export interface ChatRequest {
   message: string;
+  /** Which business type the conversation is about; scopes the whole turn. */
+  category: BusinessType;
   history: { role: "user" | "assistant"; content: string }[];
   selected_slug?: string;
-  restaurant_slugs: string[];
+  business_slugs: string[];
   previous_query_string: string;
 }
 

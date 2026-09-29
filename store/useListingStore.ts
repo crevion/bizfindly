@@ -6,7 +6,15 @@ import type { ListingDraft } from "@/types/listing";
 import { emptyDraft } from "@/content/listingCategories";
 
 function normalizeDraft(draft: Partial<ListingDraft> | undefined): ListingDraft {
-  return { ...emptyDraft(), ...(draft ?? {}) };
+  const merged = { ...emptyDraft(), ...(draft ?? {}) };
+  // Photo previews are object URLs for files held in memory; they die with the
+  // page, so a rehydrated draft must not keep pointing at them.
+  merged.images = Object.fromEntries(
+    Object.entries(merged.images ?? {})
+      .map(([group, urls]) => [group, (urls ?? []).filter((url) => !url.startsWith("blob:"))])
+      .filter(([, urls]) => (urls as string[]).length > 0),
+  ) as Record<string, string[]>;
+  return merged;
 }
 
 interface ListingState {

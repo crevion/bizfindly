@@ -4,15 +4,10 @@ import { useEffect, useRef } from "react";
 
 import { ChevronRight, RotateCcw, Sparkles, X, Search, Utensils } from "lucide-react";
 import { usePlaceFinderStore } from "./usePlaceFinderStore";
-import { CUISINES_LIST } from "./constants";
+import { businessTypeConfig } from "./businessTypes";
+import { useTaxonomy } from "@/lib/backend/taxonomy";
+import { BusinessTypeIcon } from "./BusinessTypeSelect";
 import { CustomSelect } from "@/components/common/CustomSelect";
-
-const PROMPT_SUGGESTIONS = [
-  "Rooftop restaurant in Gulshan with city view",
-  "Budget Biryani or Kacchi under ৳500",
-  "Trending restaurants in Dhaka",
-  "Family dinner in Banani",
-];
 
 const SelectedPlaceHeader = () => {
   const selectedPlaceId = usePlaceFinderStore((s) => s.selectedPlaceId);
@@ -64,6 +59,9 @@ export function SearchPlacePanel() {
   const stopChat = usePlaceFinderStore((s) => s.stopChat);
   const chatStatus = usePlaceFinderStore((s) => s.chatStatus);
   const error = usePlaceFinderStore((s) => s.error);
+  const businessType = usePlaceFinderStore((s) => s.businessType);
+  const typeConfig = businessTypeConfig(businessType);
+  const { data: cuisines } = useTaxonomy("cuisines");
   const chatScroll = useRef<HTMLDivElement>(null);
   const followReply = useRef(true);
   useEffect(() => {
@@ -79,7 +77,13 @@ export function SearchPlacePanel() {
             <span className="bg-brand text-brand-foreground shadow-soft flex h-8 w-8 items-center justify-center rounded-lg">
               <Sparkles size={16} />
             </span>
-            <h2 className="text-foreground text-base font-bold">Chat with BizFindly</h2>
+            <div className="min-w-0">
+              <h2 className="text-foreground text-base font-bold">Chat with BizFindly</h2>
+              <p className="text-muted-foreground flex items-center gap-1 text-[11px] font-semibold">
+                <BusinessTypeIcon type={businessType} size={11} />
+                {typeConfig.label}
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {chatMessages.length > 0 && (
@@ -107,19 +111,16 @@ export function SearchPlacePanel() {
             <div className="bg-brand/10 text-brand mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl">
               <Sparkles className="h-7 w-7" />
             </div>
-            <h3 className="text-foreground text-base font-bold">
-              What kind of restaurant are you looking for?
-            </h3>
+            <h3 className="text-foreground text-base font-bold">{typeConfig.chatTitle}</h3>
             <p className="text-muted-foreground mx-auto mt-1 max-w-xs text-xs">
-              Tell me what you’re in the mood for, compare restaurants, or ask about a menu (e.g.
-              &ldquo;Cozy cafe for work in Dhanmondi&rdquo;).
+              {typeConfig.chatHint}
             </p>
 
             <div className="mt-5 space-y-2 text-left">
               <p className="text-muted-foreground text-[11px] font-bold tracking-wider uppercase">
                 Try asking:
               </p>
-              {PROMPT_SUGGESTIONS.map((prompt) => (
+              {typeConfig.prompts.map((prompt) => (
                 <button
                   key={prompt}
                   type="button"
@@ -206,7 +207,7 @@ export function SearchPlacePanel() {
               }}
               aria-label="Message BizFindly"
               disabled={isAiResponding}
-              placeholder="Ask for ideas, compare restaurants, or ask a follow-up…"
+              placeholder={typeConfig.chatPlaceholder}
               maxLength={1000}
               rows={2}
               className="border-border bg-background focus:border-brand w-full resize-none rounded-xl border px-3 py-2 text-xs outline-none"
@@ -237,7 +238,7 @@ export function SearchPlacePanel() {
 
   return (
     <div className="border-border shadow-soft space-y-4 rounded-3xl border bg-white p-5">
-      <h2 className="text-foreground text-lg font-bold">Search places</h2>
+      <h2 className="text-foreground text-lg font-bold">Search {typeConfig.label.toLowerCase()}</h2>
 
       <button
         type="button"
@@ -250,7 +251,9 @@ export function SearchPlacePanel() {
           </div>
           <div>
             <div className="text-foreground text-sm font-bold">Search with AI Finder</div>
-            <div className="text-muted-foreground text-xs">Personalized mood & vibe search</div>
+            <div className="text-muted-foreground text-xs">
+              Personalized {typeConfig.noun} search by mood &amp; vibe
+            </div>
           </div>
         </div>
         <div className="text-brand flex items-center gap-1 text-xs font-semibold">
@@ -262,7 +265,7 @@ export function SearchPlacePanel() {
       <div className="space-y-3">
         <div>
           <label className="text-muted-foreground mb-1 block text-xs font-semibold">
-            Place Name or Keyword
+            {typeConfig.searchLabel}
           </label>
           <div className="border-border bg-background flex items-center gap-2 rounded-xl border px-3 py-2.5">
             <Search size={16} className="text-muted-foreground" />
@@ -270,7 +273,7 @@ export function SearchPlacePanel() {
               type="text"
               value={searchPlace}
               onChange={(e) => setSearchPlace(e.target.value)}
-              placeholder="e.g. Noor Rooftop, Izumi, Sahara..."
+              placeholder={typeConfig.searchPlaceholder}
               className="text-foreground placeholder:text-muted-foreground w-full bg-transparent text-sm outline-none"
             />
             {searchPlace && (
@@ -285,23 +288,27 @@ export function SearchPlacePanel() {
           </div>
         </div>
 
-        <div>
-          <label className="text-muted-foreground mb-1 block text-xs font-semibold">
-            Cuisine or Style
-          </label>
-          <CustomSelect
-            value={searchCuisine}
-            options={[
-              { value: "", label: "All Cuisines & Types" },
-              ...CUISINES_LIST.map((c) => ({ value: c, label: c })),
-            ]}
-            onChange={(val) => setSearchCuisine(val)}
-            icon={<Utensils size={13} />}
-            className="w-full"
-            triggerClassName="h-10 rounded-xl border border-border bg-background text-sm font-normal text-foreground shadow-none"
-            menuClassName="w-full"
-          />
-        </div>
+        {typeConfig.hasCuisine && cuisines.length > 0 && (
+          <div>
+            <label className="text-muted-foreground mb-1 block text-xs font-semibold">
+              Cuisine or Style
+            </label>
+            <CustomSelect
+              value={searchCuisine}
+              // The real cuisines, by slug: the list used to be hardcoded
+              // display names that the backend could not filter on.
+              options={[
+                { value: "", label: "All Cuisines & Types" },
+                ...cuisines.map((c) => ({ value: c.slug, label: c.name })),
+              ]}
+              onChange={(val) => setSearchCuisine(val)}
+              icon={<Utensils size={13} />}
+              className="w-full"
+              triggerClassName="h-10 rounded-xl border border-border bg-background text-sm font-normal text-foreground shadow-none"
+              menuClassName="w-full"
+            />
+          </div>
+        )}
       </div>
     </div>
   );

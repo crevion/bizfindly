@@ -9,21 +9,38 @@ export interface RadiusFilters {
   unit: "km" | "miles";
   /** Middle of the listings on screen, used when nothing has been picked. */
   placesCenter?: MapCenter | null;
+  /** Where the browser says the visitor is, once they have allowed it. */
+  userLocation?: MapCenter | null;
   /** Cities and areas as the backend reports them, with their centres. */
   locations?: LocationCity[];
 }
 
 /**
- * Where the map sits and what a radius is measured from: an explicit area or
- * city first, otherwise the middle of the listings themselves, and only then a
- * fixed fallback. Centring on the data matters -- the listings cluster several
- * kilometres from the generic city point, so a small radius around that point
- * would find nothing and look broken.
+ * Where the map sits and what a radius is measured from.
+ *
+ * An area or city the visitor picked wins, because they said it out loud.
+ * Failing that it is wherever the browser says they are, which is the useful
+ * default for "what is near me". Then the middle of the listings themselves --
+ * centring on the data matters, since listings cluster several kilometres from
+ * the generic city point and a small radius around that point would find
+ * nothing and look broken -- and only then a fixed fallback.
  */
-export const searchCenter = (state: RadiusFilters): MapCenter =>
-  centerOfSelection(state.locations ?? [], state.selectedCity, state.selectedArea) ??
-  state.placesCenter ??
-  DEFAULT_MAP_CENTER;
+export const searchCenter = (state: RadiusFilters): MapCenter => {
+  const picked = centerOfSelection(
+    state.locations ?? [],
+    state.selectedCity,
+    state.selectedArea,
+  );
+  if (picked) return picked;
+  // Naming a city or area means "not near me", so the visitor's own position
+  // is skipped even here -- where that place has no centre yet because the
+  // locations payload has not arrived. Falling through to it would quietly
+  // search around the visitor while the card said Dhaka.
+  if (state.selectedCity || state.selectedArea) {
+    return state.placesCenter ?? DEFAULT_MAP_CENTER;
+  }
+  return state.userLocation ?? state.placesCenter ?? DEFAULT_MAP_CENTER;
+};
 
 /** Mean position of the places that have been pinned; null if none are. */
 export const centerOfPlaces = (
@@ -59,10 +76,17 @@ export const radiusSearch = (
 
 /**
  * Query string for a listing request: whatever the AI search settled on, plus
- * the map's radius when one is set.
+ * the city, area and radius the map is set to.
+ *
+ * City and area go to the backend rather than being matched in the browser.
+ * Only the loaded page could be filtered here -- 20 of possibly hundreds of
+ * listings -- so picking an area would appear to find almost nothing, and the
+ * result count beside the tabs would still describe the wider search.
  */
 export const listQueryString = (state: RadiusFilters & { queryString: string }): string => {
   const params = new URLSearchParams(state.queryString);
+  if (state.selectedCity) params.set("city", state.selectedCity);
+  if (state.selectedArea) params.set("area", state.selectedArea);
   const search = radiusSearch(state);
   if (search) {
     params.set("lat", String(search.center.lat));

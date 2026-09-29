@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { BadgeCheck, Bookmark, Clock, Heart, MapPin, Sparkles, Star, Tag } from "lucide-react";
+import { Bookmark, MapPin, Sparkles, Star, Tag } from "lucide-react";
 import toast from "react-hot-toast";
 import type { Place } from "@/types/place";
 import { usePlaceFinderStore } from "./usePlaceFinderStore";
 
-const priceLabel = (n: number) => "৳".repeat(n || 1);
+import { hasPriceFigure, priceAmount, PRICE_SYMBOL } from "@/lib/backend/places/price";
 
 export function PlaceFinderCard({ place }: { place: Place }) {
   const isSaved = usePlaceFinderStore((s) => s.savedPlaceIds.has(place.id));
@@ -15,9 +15,9 @@ export function PlaceFinderCard({ place }: { place: Place }) {
   const toggleSelectedPlace = usePlaceFinderStore((s) => s.toggleSelectedPlace);
 
   const isSelected = selectedPlaceId === place.id;
-  const numId = parseInt(place.id, 10) || 1;
-  const isOpenNow = numId % 4 !== 0;
-  const hasCoupon = numId % 3 === 0;
+  const hasCoupon = place.hasOffer === true;
+  const priceText = priceAmount(place.priceRange);
+  const showPriceSymbol = hasPriceFigure(place.priceRange);
 
   const handleSave = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -58,11 +58,6 @@ export function PlaceFinderCard({ place }: { place: Place }) {
           )}
         </div>
         <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">
-          {isOpenNow && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-background/95 px-2 py-0.5 text-[9px] font-semibold text-success shadow-soft backdrop-blur">
-              <Clock size={10} /> Open
-            </span>
-          )}
           {hasCoupon && (
             <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2 py-0.5 text-[9px] font-bold text-brand shadow-soft">
               <Tag size={10} /> Coupon
@@ -156,12 +151,14 @@ export function PlaceFinderCard({ place }: { place: Place }) {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="font-bold text-foreground text-sm">
-              {priceLabel(place.priceLevel)}
-            </span>
-            {place.priceRange && (
+            {/* One symbol, not one per price tier -- and none at all when the
+                range says "Price on request" rather than a figure. */}
+            {showPriceSymbol && (
+              <span className="font-bold text-foreground text-sm">{PRICE_SYMBOL}</span>
+            )}
+            {priceText && (
               <span className="text-muted-foreground text-[11px] hidden sm:inline">
-                {place.priceRange.replace(/৳+ • /, "")}
+                {priceText}
               </span>
             )}
           </div>

@@ -10,6 +10,8 @@ import { PlaceListSkeleton } from "@/components/ai-finder/PlaceCardSkeleton";
 import { PlaceListEmpty } from "@/components/ai-finder/PlaceListEmpty";
 import { usePlaceFinderStore } from "@/components/ai-finder/usePlaceFinderStore";
 import { useFilterUrlSync } from "@/components/ai-finder/useFilterUrlSync";
+import { BusinessTypeSelect } from "@/components/ai-finder/BusinessTypeSelect";
+import { businessTypeConfig } from "@/components/ai-finder/businessTypes";
 import { ScrollArea } from "@/components/common/ScrollArea";
 
 const SCROLL_TOP_THRESHOLD = 320;
@@ -33,7 +35,10 @@ function AiFinderInner() {
   const isLoadingMore = usePlaceFinderStore((s) => s.isLoadingMore);
   const loadMorePlaces = usePlaceFinderStore((s) => s.loadMorePlaces);
   const resultCount = usePlaceFinderStore((s) => s.resultCount);
+  const businessType = usePlaceFinderStore((s) => s.businessType);
   const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const typeConfig = businessTypeConfig(businessType);
 
   useEffect(() => {
     initializePlaces();
@@ -55,6 +60,28 @@ function AiFinderInner() {
 
   return (
     <div className="mx-auto max-w-[1240px] min-w-0 px-4 py-3 lg:px-6 lg:py-6">
+      {/* The business type governs the map, the list and the assistant below,
+          so it sits above all three rather than inside the filters. */}
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-foreground text-xl font-bold sm:text-2xl">
+            Discover {typeConfig.label.toLowerCase()}
+          </h1>
+          <p className="text-muted-foreground mt-0.5 text-xs sm:text-sm">
+            Search with AI, filter by area and see every {typeConfig.noun} on the map.
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <label
+            htmlFor="business-type"
+            className="text-muted-foreground hidden text-xs font-semibold sm:block"
+          >
+            Business type
+          </label>
+          <BusinessTypeSelect className="w-[170px]" />
+        </div>
+      </div>
+
       <LocationMapComponent />
 
       <div className="mt-6 grid min-w-0 grid-cols-1 justify-center gap-6 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:items-start">
@@ -109,7 +136,9 @@ function AiFinderInner() {
               onClick={() => void loadMorePlaces()}
               className="border-border bg-card w-full rounded-2xl border px-4 py-3 text-sm font-semibold disabled:opacity-50"
             >
-              {isLoadingMore ? "Loading…" : `Load more (${resultCount} results)`}
+              {isLoadingMore
+                ? "Loading…"
+                : `Load more ${typeConfig.plural} (${resultCount} results)`}
             </button>
           )}
         </div>

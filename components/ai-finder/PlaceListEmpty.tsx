@@ -2,9 +2,12 @@
 
 import { SearchX } from "lucide-react";
 import { usePlaceFinderStore } from "./usePlaceFinderStore";
+import { businessTypeConfig } from "./businessTypes";
 
 export function PlaceListEmpty() {
   const clearFilters = usePlaceFinderStore((s) => s.clearFilters);
+  const businessType = usePlaceFinderStore((s) => s.businessType);
+  const typeConfig = businessTypeConfig(businessType);
 
   return (
     <div className="bg-white rounded-3xl border border-border py-16 px-6 flex flex-col items-center text-center shadow-soft">
@@ -12,10 +15,10 @@ export function PlaceListEmpty() {
         <SearchX className="w-8 h-8" />
       </div>
 
-      <h3 className="text-base font-bold text-foreground mb-1">No places found</h3>
-      <p className="text-xs text-muted-foreground max-w-xs mb-5">
-        We couldn&apos;t find any venues matching your current filters. Try changing your search or resetting filters.
-      </p>
+      <h3 className="text-base font-bold text-foreground mb-1">
+        No {typeConfig.plural} found
+      </h3>
+      <p className="text-xs text-muted-foreground max-w-xs mb-5">{typeConfig.emptyHint}</p>
 
       <button
         type="button"

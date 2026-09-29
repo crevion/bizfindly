@@ -84,7 +84,7 @@ export function MenuSection({ menu }: { menu: NonNullable<Place["menu"]> }) {
                       <img
                         src={item.image}
                         alt=""
-                        className="h-16 w-16 shrink-0 rounded-xl object-cover"
+                        className="h-16 w-16 shrink-0 rounded-xl object-cover hidden"
                       />
                     )}
                     <div>

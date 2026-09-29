@@ -43,6 +43,13 @@ export const restaurantsApi = {
       headers: authHeader(),
     }),
 
+  uploadCoverPhoto: (slug: string, data: FormData) =>
+    apiClient<{ cover_photo: string }>(`/owner/restaurants/${slug}/cover-photo/`, {
+      method: "POST",
+      body: data,
+      headers: authHeader(),
+    }),
+
   listGalleryImages: (slug: string) =>
     apiClient<GalleryImage[]>(`/owner/restaurants/${slug}/gallery/`, {
       headers: authHeader(),

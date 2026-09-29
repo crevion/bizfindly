@@ -3,11 +3,14 @@ import { toCoords } from "@/lib/backend/places/map";
 import { apiClient, buildQuery, type NamedSlug, type Paginated } from "@/lib/backend/api";
 import type { Place } from "@/types/place";
 
-interface GymListItem {
+export interface GymListItem {
+  is_open_now: boolean | null;
+  has_offer: boolean;
   name: string;
   slug: string;
   cover_photo: string | null;
   city: string;
+  area: string;
   rating: string;
   review_count: number;
   is_trending: boolean;
@@ -22,8 +25,7 @@ interface GymListItem {
   distance_km: number | null;
 }
 
-interface GymDetail extends GymListItem {
-  area: string;
+export interface GymDetail extends GymListItem {
   address: string;
   google_map_url: string;
   latitude: string | null;
@@ -58,8 +60,8 @@ export function mapGym(gym: GymListItem | GymDetail): Place {
     slug: gym.slug,
     name: gym.name,
     category: "gym",
-    location: [detail?.area, gym.city].filter(Boolean).join(", "),
-    area: detail?.area || gym.city,
+    location: [gym.area, gym.city].filter(Boolean).join(", ") || gym.city,
+    area: gym.area || gym.city,
     image,
     gallery: detail?.gallery.length ? detail.gallery.map((item) => item.image) : [image],
     rating: Number(gym.rating) || 0,
@@ -82,6 +84,8 @@ export function mapGym(gym: GymListItem | GymDetail): Place {
     verified: gym.is_verified,
     coords: toCoords(gym.latitude, gym.longitude),
     distanceKm: gym.distance_km ?? undefined,
+    openNow: gym.is_open_now,
+    hasOffer: gym.has_offer,
     mapUrl: detail?.google_map_url || undefined,
   };
 }

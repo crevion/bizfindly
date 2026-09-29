@@ -2,27 +2,80 @@
 
 import { X } from "lucide-react";
 import { usePlaceFinderStore } from "./usePlaceFinderStore";
-import { PLACE_VIBES, BUDGET_MAX } from "./constants";
+import { BUDGET_MAX } from "./constants";
+import {
+  BUSINESS_TYPES,
+  businessTypeConfig,
+  type BusinessType,
+  type FacetGroup,
+} from "./businessTypes";
+import { BusinessTypeIcon } from "./BusinessTypeSelect";
+import { useTaxonomy } from "@/lib/backend/taxonomy";
 
 const BARS = [10, 16, 28, 14, 22, 12, 24, 18, 30, 20, 14, 26, 32];
 
+/**
+ * One group of filter chips, from the taxonomy the listings are tagged with.
+ *
+ * Renders nothing when that taxonomy is empty: a chip that cannot match any
+ * listing is worse than no chip, which is what the old hardcoded labels were.
+ */
+function FacetChips({ group, businessType }: { group: FacetGroup; businessType: BusinessType }) {
+  const { data, loading } = useTaxonomy(
+    group.kind,
+    group.kind === "tags" || group.kind === "facilities" ? businessType : undefined,
+  );
+  const selected = usePlaceFinderStore((s) => s.facets[group.param]) ?? [];
+  const toggleFacet = usePlaceFinderStore((s) => s.toggleFacet);
+
+  if (loading || !data.length) return null;
+
+  return (
+    <div>
+      <label className="text-xs font-semibold text-muted-foreground mb-2 block">
+        {group.label}
+      </label>
+      <div className="flex flex-wrap gap-1.5">
+        {data.map((item) => {
+          const active = selected.includes(item.slug);
+          return (
+            <button
+              key={item.slug}
+              type="button"
+              aria-pressed={active}
+              onClick={() => toggleFacet(group.param, item.slug)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer ${
+                active
+                  ? "bg-brand text-brand-foreground border-brand shadow-soft"
+                  : "bg-card text-foreground border-border hover:border-brand/40"
+              }`}
+            >
+              {item.name}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function PlaceFinderFilters() {
-  const searchCategory = usePlaceFinderStore((s) => s.searchCategory);
-  const setSearchCategory = usePlaceFinderStore((s) => s.setSearchCategory);
+  const businessType = usePlaceFinderStore((s) => s.businessType);
+  const setBusinessType = usePlaceFinderStore((s) => s.setBusinessType);
   const minBudget = usePlaceFinderStore((s) => s.minBudget);
   const maxBudget = usePlaceFinderStore((s) => s.maxBudget);
   const setMinBudget = usePlaceFinderStore((s) => s.setMinBudget);
   const setMaxBudget = usePlaceFinderStore((s) => s.setMaxBudget);
   const minRating = usePlaceFinderStore((s) => s.minRating);
   const setMinRating = usePlaceFinderStore((s) => s.setMinRating);
-  const selectedVibes = usePlaceFinderStore((s) => s.selectedVibes);
-  const toggleVibe = usePlaceFinderStore((s) => s.toggleVibe);
   const openNow = usePlaceFinderStore((s) => s.openNow);
   const setOpenNow = usePlaceFinderStore((s) => s.setOpenNow);
   const clearFilters = usePlaceFinderStore((s) => s.clearFilters);
 
   const minPct = (minBudget / BUDGET_MAX) * 100;
   const maxPct = (maxBudget / BUDGET_MAX) * 100;
+
+  const typeConfig = businessTypeConfig(businessType);
 
   return (
     <div className="bg-white rounded-3xl border border-border p-5 shadow-soft space-y-6 text-sm">
@@ -37,29 +90,27 @@ export function PlaceFinderFilters() {
         </button>
       </div>
 
-      {/* Categories */}
+      {/* Business type -- the same choice as the dropdown in the page header,
+          kept here because it is the first thing a manual search decides. */}
       <div>
         <label className="text-xs font-semibold text-muted-foreground mb-2 block">
-          Category
+          Business type
         </label>
-        <div className="grid grid-cols-4 gap-1.5 p-1 bg-muted rounded-2xl">
-          {[
-            { key: "all", label: "All" },
-            { key: "restaurant", label: "Eat" },
-            { key: "resort", label: "Stay" },
-            { key: "gym", label: "Gym" },
-          ].map((c) => (
+        <div className="grid grid-cols-3 gap-1.5 p-1 bg-muted rounded-2xl">
+          {BUSINESS_TYPES.map((type) => (
             <button
-              key={c.key}
+              key={type}
               type="button"
-              onClick={() => setSearchCategory(c.key as "all" | "restaurant" | "resort" | "gym")}
-              className={`py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
-                searchCategory === c.key
+              onClick={() => setBusinessType(type as BusinessType)}
+              aria-pressed={businessType === type}
+              className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                businessType === type
                   ? "bg-card text-foreground shadow-soft"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {c.label}
+              <BusinessTypeIcon type={type} size={13} />
+              {businessTypeConfig(type).shortLabel}
             </button>
           ))}
         </div>
@@ -69,7 +120,7 @@ export function PlaceFinderFilters() {
       <div>
         <div className="flex justify-between items-center mb-2">
           <label className="text-xs font-semibold text-muted-foreground">
-            Budget per Person / Night
+            {typeConfig.budgetLabel}
           </label>
           <span className="text-xs font-bold text-foreground">
             ৳{minBudget.toLocaleString()} – ৳{maxBudget.toLocaleString()}
@@ -120,32 +171,10 @@ export function PlaceFinderFilters() {
         </div>
       </div>
 
-      {/* Vibes & Features */}
-      <div>
-        <label className="text-xs font-semibold text-muted-foreground mb-2 block">
-          Vibe & Facilities
-        </label>
-        <div className="flex flex-wrap gap-1.5">
-          {PLACE_VIBES.map((vibe) => {
-            const active = selectedVibes.includes(vibe.label);
-            return (
-              <button
-                key={vibe.label}
-                type="button"
-                onClick={() => toggleVibe(vibe.label)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer ${
-                  active
-                    ? "bg-brand text-brand-foreground border-brand shadow-soft"
-                    : "bg-card text-foreground border-border hover:border-brand/40"
-                }`}
-              >
-                <span>{vibe.icon}</span>
-                <span>{vibe.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      {/* The chip groups this business type is tagged by. */}
+      {typeConfig.facetGroups.map((group) => (
+        <FacetChips key={group.param} group={group} businessType={businessType} />
+      ))}
 
       {/* Min Rating */}
       <div>

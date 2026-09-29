@@ -7,9 +7,13 @@ import {
   type ListTab,
   type SortOption,
 } from "./constants";
+import {
+  BUSINESS_TYPES,
+  DEFAULT_BUSINESS_TYPE,
+  FACET_PARAMS,
+  type BusinessType,
+} from "./businessTypes";
 
-export type SearchCategory = "all" | "restaurant" | "resort" | "gym";
-const CATEGORIES: SearchCategory[] = ["all", "restaurant", "resort", "gym"];
 const UNITS = ["km", "miles"] as const;
 
 const MAX_RANGE = 100;
@@ -18,7 +22,7 @@ const MAX_RATING = 5;
 /** The slice of the finder's state that belongs in the address bar. */
 export interface UrlFilters {
   searchPlace: string;
-  searchCategory: SearchCategory;
+  businessType: BusinessType;
   searchCuisine: string;
   selectedCity: string;
   selectedArea: string;
@@ -27,7 +31,8 @@ export interface UrlFilters {
   minRating: number;
   minBudget: number;
   maxBudget: number;
-  selectedVibes: string[];
+  /** Listing filter parameter -> the slugs picked in that chip group. */
+  facets: Record<string, string[]>;
   openNow: boolean;
   listTab: ListTab;
   sortBy: SortOption;
@@ -45,7 +50,7 @@ export function filtersToParams(filters: UrlFilters): URLSearchParams {
   };
 
   put("q", filters.searchPlace.trim(), !filters.searchPlace.trim());
-  put("category", filters.searchCategory, filters.searchCategory === "all");
+  put("type", filters.businessType, filters.businessType === DEFAULT_BUSINESS_TYPE);
   put("cuisine", filters.searchCuisine.trim(), !filters.searchCuisine.trim());
   put("city", filters.selectedCity, !filters.selectedCity);
   put("area", filters.selectedArea, !filters.selectedArea);
@@ -55,7 +60,12 @@ export function filtersToParams(filters: UrlFilters): URLSearchParams {
   put("rating", filters.minRating, filters.minRating <= 0);
   put("budget_min", filters.minBudget, filters.minBudget <= 0);
   put("budget_max", filters.maxBudget, filters.maxBudget >= BUDGET_MAX);
-  put("vibes", filters.selectedVibes.join(","), !filters.selectedVibes.length);
+  // Each chip group travels under its own listing filter name, so a shared
+  // link reads ?vibe=rooftop&facility=pool -- the words the API uses.
+  for (const param of FACET_PARAMS) {
+    const slugs = filters.facets[param] ?? [];
+    put(param, slugs.join(","), !slugs.length);
+  }
   put("open", 1, !filters.openNow);
   put("tab", filters.listTab, filters.listTab === DEFAULT_LIST_TAB);
   put("sort", filters.sortBy, filters.sortBy === DEFAULT_SORT);
@@ -84,8 +94,10 @@ export function paramsToFilters(params: URLSearchParams): Partial<UrlFilters> {
   const q = text("q");
   if (q) filters.searchPlace = q;
 
-  const category = oneOf(params.get("category"), CATEGORIES);
-  if (category) filters.searchCategory = category;
+  // `category` is the parameter this used to be called, back when it also
+  // accepted "all"; links carrying it should still open on the right type.
+  const type = oneOf(params.get("type") ?? params.get("category"), BUSINESS_TYPES);
+  if (type) filters.businessType = type;
 
   const cuisine = text("cuisine");
   if (cuisine) filters.searchCuisine = cuisine;
@@ -111,11 +123,15 @@ export function paramsToFilters(params: URLSearchParams): Partial<UrlFilters> {
   const budgetMax = number(params.get("budget_max"), BUDGET_MAX);
   if (budgetMax !== undefined) filters.maxBudget = budgetMax;
 
-  const vibes = text("vibes")
-    ?.split(",")
-    .map((vibe) => vibe.trim())
-    .filter(Boolean);
-  if (vibes?.length) filters.selectedVibes = vibes;
+  const facets: Record<string, string[]> = {};
+  for (const param of FACET_PARAMS) {
+    const slugs = text(param)
+      ?.split(",")
+      .map((slug) => slug.trim())
+      .filter(Boolean);
+    if (slugs?.length) facets[param] = slugs;
+  }
+  if (Object.keys(facets).length) filters.facets = facets;
 
   if (params.get("open") === "1") filters.openNow = true;
 
