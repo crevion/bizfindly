@@ -66,6 +66,8 @@ interface PlaceFinderState {
   sortBy: SortOption;
   allPlaces: Place[];
   visiblePlaces: Place[];
+  /** Every match for the current search (up to 500), for the map pins. */
+  mapPlaces: Place[];
   isLoading: boolean;
   isLoadingMore: boolean;
   hasMore: boolean;
@@ -114,6 +116,8 @@ interface PlaceFinderState {
   locateUser: (options?: { prompt?: boolean }) => Promise<void>;
   clearUserLocation: () => void;
   fetchPlaces: () => Promise<void>;
+  /** Load the map pins for a listing query string, separately from the list. */
+  fetchMapPlaces: (queryString: string) => Promise<void>;
   loadMorePlaces: () => Promise<void>;
 }
 
@@ -131,6 +135,19 @@ const visibleFor = (state: PlaceFinderState, rawList: Place[]): Place[] =>
   state.listTab === "Saved"
     ? rawList.filter((place) => state.savedPlaceIds.has(place.id))
     : rawList;
+
+/**
+ * What the map pins: the unpaginated map response, or the loaded list while
+ * that is missing. Saved narrows it the same way it narrows the list.
+ */
+export const mapPinsFor = (
+  state: Pick<PlaceFinderState, "mapPlaces" | "allPlaces" | "listTab" | "savedPlaceIds">,
+): Place[] => {
+  const pins = state.mapPlaces.length ? state.mapPlaces : state.allPlaces;
+  return state.listTab === "Saved"
+    ? pins.filter((place) => state.savedPlaceIds.has(place.id))
+    : pins;
+};
 
 /** Whether the current request is scoped to a place rather than the whole type. */
 const isNarrowedSearch = (state: PlaceFinderState): boolean =>
@@ -177,6 +194,8 @@ export const selectResultCount = (state: PlaceFinderState): number =>
 
 // Ignore older requests when a new search or reset replaces them.
 let requestVersion = 0;
+// The map pins load on their own, so a slow list cannot hold them back.
+let mapRequestVersion = 0;
 let chatController: AbortController | null = null;
 const nextQueryString = (next: string | null) =>
   next ? new URL(next, "http://localhost").search.slice(1) : null;
@@ -205,6 +224,7 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
   sortBy: DEFAULT_SORT,
   allPlaces: [],
   visiblePlaces: [],
+  mapPlaces: [],
   isLoading: false,
   isLoadingMore: false,
   hasMore: false,
@@ -256,6 +276,7 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
       businessType: val,
       allPlaces: [],
       visiblePlaces: [],
+      mapPlaces: [],
       resultCount: 0,
       hasMore: false,
       nextQuery: null,
@@ -486,6 +507,7 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
                   : message,
               ),
             }));
+            void get().fetchMapPlaces(event.query_string);
           }
           if (event.type === "done") {
             set((state) => ({
@@ -633,7 +655,9 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
     });
     try {
       const type = get().businessType;
-      const response = await aiPlacesApi.list(type, listQueryString(get()));
+      const queryString = listQueryString(get());
+      void get().fetchMapPlaces(queryString);
+      const response = await aiPlacesApi.list(type, queryString);
       if (version !== requestVersion) return;
       const places = response.results.map((item) => mapPlaceListItem(type, item));
       set({
@@ -663,6 +687,20 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
       });
     } finally {
       if (version === requestVersion) set({ isLoading: false });
+    }
+  },
+
+  fetchMapPlaces: async (queryString) => {
+    const version = ++mapRequestVersion;
+    const type = get().businessType;
+    try {
+      const items = await aiPlacesApi.map(type, queryString);
+      if (version !== mapRequestVersion || get().businessType !== type) return;
+      set({ mapPlaces: items.map((item) => mapPlaceListItem(type, item)) });
+    } catch {
+      // The map falls back to the loaded page of the list (see mapPinsFor),
+      // so a failed pin request is not worth an error of its own.
+      if (version === mapRequestVersion) set({ mapPlaces: [] });
     }
   },
 

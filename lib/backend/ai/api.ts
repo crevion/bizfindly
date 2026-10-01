@@ -50,4 +50,13 @@ export const aiPlacesApi = {
     apiClient<Paginated<PlaceListItem>>(
       `${listingPath(type)}${queryString ? `?${queryString.replace(/^\?/, "")}` : ""}`,
     ),
+
+  /**
+   * Every match with coordinates (up to 500), unpaginated, for the map pins.
+   * Same filters as `list`, so the pins show the whole search, not one page.
+   */
+  map: (type: BusinessType, queryString = "") =>
+    apiClient<PlaceListItem[]>(
+      `${listingPath(type)}map/${queryString ? `?${queryString.replace(/^\?/, "")}` : ""}`,
+    ),
 };

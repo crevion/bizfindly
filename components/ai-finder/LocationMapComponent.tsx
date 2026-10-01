@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { usePlaceFinderStore } from "./usePlaceFinderStore";
+import { mapPinsFor, usePlaceFinderStore } from "./usePlaceFinderStore";
 
 import { searchCenter } from "./radiusSearch";
 import { CustomSelect } from "@/components/common/CustomSelect";
@@ -367,7 +367,10 @@ export function LocationMapComponent() {
   const setRange = usePlaceFinderStore((s) => s.setRange);
   const unit = usePlaceFinderStore((s) => s.unit);
   const setUnit = usePlaceFinderStore((s) => s.setUnit);
-  const visiblePlaces = usePlaceFinderStore((s) => s.visiblePlaces);
+  const mapPlaces = usePlaceFinderStore((s) => s.mapPlaces);
+  const allPlaces = usePlaceFinderStore((s) => s.allPlaces);
+  const listTab = usePlaceFinderStore((s) => s.listTab);
+  const savedPlaceIds = usePlaceFinderStore((s) => s.savedPlaceIds);
   const placesCenter = usePlaceFinderStore((s) => s.placesCenter);
   const locations = usePlaceFinderStore((s) => s.locations);
   const businessType = usePlaceFinderStore((s) => s.businessType);
@@ -387,9 +390,14 @@ export function LocationMapComponent() {
     return city ? city.areas : locations.flatMap((entry) => entry.areas);
   }, [locations, selectedCity]);
 
+  const pinPlaces = useMemo(
+    () => mapPinsFor({ mapPlaces, allPlaces, listTab, savedPlaceIds }),
+    [mapPlaces, allPlaces, listTab, savedPlaceIds],
+  );
+
   const pinnedCount = useMemo(
-    () => visiblePlaces.filter((place) => place.coords).length,
-    [visiblePlaces],
+    () => pinPlaces.filter((place) => place.coords).length,
+    [pinPlaces],
   );
 
   const [mounted, setMounted] = useState(false);
@@ -425,7 +433,7 @@ export function LocationMapComponent() {
             center={position}
             range={range}
             unit={unit}
-            places={visiblePlaces}
+            places={pinPlaces}
             color={typeConfig.markerColor}
             centerLabel={
               selectedArea || selectedCity || (centeredOnUser ? "your location" : "these listings")
