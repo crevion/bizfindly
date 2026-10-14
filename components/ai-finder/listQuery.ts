@@ -53,7 +53,7 @@ export interface ListQueryFilters extends RadiusFilters {
  * this browser and nothing the backend knows about.
  */
 export const listQueryString = (state: ListQueryFilters): string => {
-  const params = new URLSearchParams(state.queryString);
+  const params = new URLSearchParams(state.openAI ? state.queryString : "");
   const set = (key: string, value: string | number) => params.set(key, String(value));
 
   if (!state.openAI) {
@@ -89,6 +89,10 @@ export const listQueryString = (state: ListQueryFilters): string => {
     set("lat", nearby.center.lat);
     set("lng", nearby.center.lng);
     set("radius", nearby.radiusKm.toFixed(3));
+  } else {
+    params.delete("lat");
+    params.delete("lng");
+    params.delete("radius");
   }
 
   if (state.selectedCity) set("city", state.selectedCity);

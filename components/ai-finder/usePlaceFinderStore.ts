@@ -4,11 +4,7 @@ import { create } from "zustand";
 import type { Place } from "@/types/place";
 import { streamChat } from "@/lib/backend/ai/chat";
 import { aiPlacesApi, mapPlaceListItem } from "@/lib/backend/ai/api";
-import {
-  businessTypeConfig,
-  DEFAULT_BUSINESS_TYPE,
-  type BusinessType,
-} from "./businessTypes";
+import { businessTypeConfig, DEFAULT_BUSINESS_TYPE, type BusinessType } from "./businessTypes";
 import {
   BUDGET_MAX,
   DEFAULT_LIST_TAB,
@@ -174,6 +170,10 @@ const CLEARED_FILTERS = {
 // once costs one request rather than two.
 const SETTLE_MS = 350;
 let settleTimer: ReturnType<typeof setTimeout> | null = null;
+const clearPendingFetch = () => {
+  if (settleTimer) clearTimeout(settleTimer);
+  settleTimer = null;
+};
 const refetchAfterPause = (run: () => void) => {
   if (settleTimer) clearTimeout(settleTimer);
   settleTimer = setTimeout(() => {
@@ -201,7 +201,7 @@ const nextQueryString = (next: string | null) =>
   next ? new URL(next, "http://localhost").search.slice(1) : null;
 
 export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
-  openAI: true,
+  openAI: false,
   searchPlace: "",
   businessType: DEFAULT_BUSINESS_TYPE,
   searchCuisine: "",
@@ -251,6 +251,7 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
    */
   setOpenAI: (val) => {
     if (val === get().openAI) return;
+    get().stopChat();
     set({ openAI: val });
     void get().fetchPlaces();
   },
@@ -299,15 +300,20 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
       sortBy: DEFAULT_SORT,
       isLoading: true,
     });
-    void get().loadLocations();
-    void get().fetchPlaces();
+    void get()
+      .loadLocations()
+      .then(() => get().fetchPlaces());
   },
   setSearchCuisine: (val) => {
     set({ searchCuisine: val });
     void get().fetchPlaces();
   },
   setSelectedArea: (val) => {
-    set({ selectedArea: val });
+    const city =
+      val && !get().selectedCity
+        ? get().locations.find((entry) => entry.areas.some((area) => area.name === val))?.name
+        : undefined;
+    set({ selectedArea: val, ...(city ? { selectedCity: city } : {}) });
     void get().fetchPlaces();
   },
   setSelectedCity: (val) => {
@@ -421,6 +427,7 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
   sendChatMessage: async (customText?: string) => {
     const text = (customText ?? get().chatInput).trim();
     if (!text || get().isAiResponding) return;
+    clearPendingFetch();
     const version = ++requestVersion;
     chatController?.abort();
     const controller = new AbortController();
@@ -476,9 +483,7 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
             }));
           }
           if (event.type === "results") {
-            const places = event.results.map((item) =>
-              mapPlaceListItem(before.businessType, item),
-            );
+            const places = event.results.map((item) => mapPlaceListItem(before.businessType, item));
             set((state) => ({
               allPlaces: places,
               visiblePlaces: places,
@@ -534,6 +539,7 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
   },
 
   stopChat: () => {
+    clearPendingFetch();
     ++requestVersion;
     chatController?.abort();
     chatController = null;
@@ -550,24 +556,22 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
       selectedPlaceId: null,
     });
     get().clearFilters();
-    void get().fetchPlaces();
   },
 
   clearFilters: () => {
     // Every filter is part of the request now, so clearing any of them means
     // the widened search has to be asked for again.
-    const before = get();
-    const wasNarrowed =
-      listQueryString(before) !== listQueryString({ ...before, ...CLEARED_FILTERS });
-    set(CLEARED_FILTERS);
-    set({ visiblePlaces: get().allPlaces });
-    if (wasNarrowed) void get().fetchPlaces();
+    get().stopChat();
+    set({ ...CLEARED_FILTERS, queryString: "", lastQuery: "" });
+    void get().fetchPlaces();
   },
 
   applyUrlFilters: (filters) => {
     // One batched set: going through the individual setters would fire a
     // request per filter before the page has fetched anything at all.
-    set(filters);
+    const maxBudget = Math.max(200, Math.min(BUDGET_MAX, filters.maxBudget ?? get().maxBudget));
+    const minBudget = Math.max(0, Math.min(maxBudget - 200, filters.minBudget ?? get().minBudget));
+    set({ ...filters, minBudget, maxBudget });
     set({ visiblePlaces: visibleFor(get(), get().allPlaces) });
   },
 
@@ -613,7 +617,12 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
       set({ geoStatus: "idle", geoMessage: null });
       return;
     }
-    set({ geoStatus: status, userLocation: center, geoMessage: message ?? null });
+    set({
+      geoStatus: status,
+      userLocation: center,
+      geoMessage: message ?? null,
+      ...(center && prompt ? { selectedCity: "", selectedArea: "" } : {}),
+    });
     if (!center) return;
     // Only a radius search reads the centre; without one the map just moves.
     if (radiusSearch(get())) void get().fetchPlaces();
@@ -643,6 +652,9 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
   },
 
   fetchPlaces: async () => {
+    clearPendingFetch();
+    chatController?.abort();
+    chatController = null;
     const version = ++requestVersion;
     set({
       isLoading: true,
@@ -715,10 +727,9 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
       if (version !== requestVersion) return;
       const places = [
         ...new Map(
-          [
-            ...get().allPlaces,
-            ...response.results.map((item) => mapPlaceListItem(type, item)),
-          ].map((place) => [place.id, place]),
+          [...get().allPlaces, ...response.results.map((item) => mapPlaceListItem(type, item))].map(
+            (place) => [place.id, place],
+          ),
         ).values(),
       ];
       set({

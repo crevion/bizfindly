@@ -26,12 +26,16 @@ const MAP_STYLE: google.maps.MapTypeStyle[] = [
 
 // Both pins take the current business type's colour, so switching type is
 // visible on the map itself and not just in the list beside it.
-const pinSvg = (color: string) => `<svg width="28" height="36" viewBox="0 0 28 36" xmlns="http://www.w3.org/2000/svg">
+const pinSvg = (
+  color: string,
+) => `<svg width="28" height="36" viewBox="0 0 28 36" xmlns="http://www.w3.org/2000/svg">
   <path d="M14 0C6.268 0 0 6.268 0 14c0 9.9 14 22 14 22S28 23.9 28 14C28 6.268 21.732 0 14 0z" fill="${color}"/>
   <circle cx="14" cy="14" r="5" fill="white"/>
 </svg>`;
 
-const dotSvg = (color: string) => `<svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+const dotSvg = (
+  color: string,
+) => `<svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
   <circle cx="9" cy="9" r="7" fill="${color}" stroke="#fff" stroke-width="2"/>
 </svg>`;
 
@@ -49,46 +53,36 @@ function RangeSlider({
 
   return (
     <div className="w-full">
-      <div className="relative h-5 flex items-center">
-        <div className="absolute w-full h-[3px] rounded-full bg-gray-200" />
-        <div
-          className="absolute h-[3px] rounded-full bg-brand"
-          style={{ width: `${pct}%` }}
-        />
+      <div className="relative flex h-5 items-center">
+        <div className="absolute h-[3px] w-full rounded-full bg-gray-200" />
+        <div className="bg-brand absolute h-[3px] rounded-full" style={{ width: `${pct}%` }} />
         <input
           type="range"
+          aria-label="Search radius"
           min={min}
           max={max}
           step={5}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="absolute w-full opacity-0 cursor-pointer h-5 z-10"
+          className="absolute z-10 h-5 w-full cursor-pointer opacity-0"
         />
         <div
-          className="absolute w-5 h-5 rounded-full border-2 border-brand bg-white shadow-md pointer-events-none transition-left"
+          className="border-brand transition-left pointer-events-none absolute h-5 w-5 rounded-full border-2 bg-white shadow-md"
           style={{ left: `${pct}%`, transform: "translateX(-50%)" }}
         />
       </div>
 
-      <div className="relative mt-2 h-5">
-        {RANGE_MARKS.map((m, index) => {
-          const isFirst = index === 0;
-          const isLast = index === RANGE_MARKS.length - 1;
-          const labelPct = ((m - min) / (max - min)) * 100;
-          const positionStyle: React.CSSProperties = isFirst
-            ? { left: 0 }
-            : isLast
-              ? { right: 0 }
-              : { left: `${labelPct}%`, transform: "translateX(-50%)" };
+      <div className="mt-2 flex min-h-5 items-center justify-between gap-2">
+        {RANGE_MARKS.map((m) => {
           const isActive = m === value;
           return (
             <button
               key={m}
               type="button"
               onClick={() => onChange(m)}
-              style={positionStyle}
-              className={`absolute text-xs whitespace-nowrap cursor-pointer transition-colors hover:text-gray-900 ${
-                isActive ? "font-bold text-gray-900" : "text-gray-400 font-normal"
+              aria-pressed={isActive}
+              className={`cursor-pointer text-xs whitespace-nowrap transition-colors hover:text-gray-900 ${
+                isActive ? "font-bold text-gray-900" : "font-normal text-gray-400"
               }`}
             >
               {m === 0 ? "Any" : `${m}`}
@@ -166,9 +160,7 @@ function MapInner({
       tooltipContent({
         title: centeredOnUser ? "You are here" : centerLabel,
         subtitle:
-          range > 0
-            ? `Centre of the ${range} ${unit} search`
-            : `Middle of the ${typeLabel} shown`,
+          range > 0 ? `Centre of the ${range} ${unit} search` : `Middle of the ${typeLabel} shown`,
         accent: color,
       });
   }, [range, unit, centerLabel, typeLabel, pinnedCount, color, centeredOnUser]);
@@ -350,15 +342,11 @@ function MapInner({
   }
 
   return (
-    <div
-      ref={mapRef}
-      className="absolute inset-0 w-full h-full"
-      style={{ background: MAP_BG }}
-    />
+    <div ref={mapRef} className="absolute inset-0 h-full w-full" style={{ background: MAP_BG }} />
   );
 }
 
-export function LocationMapComponent() {
+export function LocationMapComponent({ variant = "map" }: { variant?: "map" | "filters" }) {
   const selectedCity = usePlaceFinderStore((s) => s.selectedCity);
   const setSelectedCity = usePlaceFinderStore((s) => s.setSelectedCity);
   const selectedArea = usePlaceFinderStore((s) => s.selectedArea);
@@ -395,10 +383,7 @@ export function LocationMapComponent() {
     [mapPlaces, allPlaces, listTab, savedPlaceIds],
   );
 
-  const pinnedCount = useMemo(
-    () => pinPlaces.filter((place) => place.coords).length,
-    [pinPlaces],
-  );
+  const pinnedCount = useMemo(() => pinPlaces.filter((place) => place.coords).length, [pinPlaces]);
 
   const [mounted, setMounted] = useState(false);
 
@@ -426,128 +411,143 @@ export function LocationMapComponent() {
   const centeredOnUser = Boolean(userLocation && !selectedArea && !selectedCity);
 
   return (
-    <div className="relative z-[1] w-full h-[314px] max-sm:flex max-sm:flex-col max-sm:gap-3 max-sm:h-auto">
-      <div className="absolute inset-0 overflow-hidden rounded-2xl max-sm:relative max-sm:h-[200px] max-sm:shrink-0 bg-[#ECEEF8]">
-        {mounted && (
-          <MapInner
-            center={position}
-            range={range}
-            unit={unit}
-            places={pinPlaces}
-            color={typeConfig.markerColor}
-            centerLabel={
-              selectedArea || selectedCity || (centeredOnUser ? "your location" : "these listings")
-            }
-            typeLabel={typeConfig.plural}
-            centeredOnUser={centeredOnUser}
-          />
-        )}
-        <div className="absolute inset-0 pointer-events-none bg-brand/5" />
-      </div>
-
-      <div className="absolute top-4 left-4 w-full max-w-[440px] px-2 sm:px-0 z-[1000] max-sm:relative max-sm:top-auto max-sm:left-auto max-sm:px-0 max-sm:shrink-0">
-        <div className="bg-white rounded-2xl p-5 flex flex-col gap-4 shadow-card border border-border">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-gray-900 font-semibold text-base">Location & Area</span>
-            <span
-              className="flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold"
-              style={{
-                color: typeConfig.markerColor,
-                backgroundColor: `${typeConfig.markerColor}14`,
-              }}
-            >
-              <BusinessTypeIcon type={businessType} size={11} />
-              {pinnedCount} {typeConfig.plural} on map
-            </span>
-          </div>
-
-          <div className="flex gap-2">
-            <CustomSelect
-              value={selectedCity}
-              options={locations.map((c) => ({ value: c.name, label: c.name }))}
-              onChange={(val) => setSelectedCity(val)}
-              icon={<Building2 size={13} />}
-              className="flex-1"
-              triggerClassName="h-9 rounded-xl border border-border bg-gray-50 text-xs font-semibold text-foreground shadow-none"
-              menuClassName="w-full"
+    <div
+      className={
+        variant === "map" ? "relative z-[1] h-[220px] w-full sm:h-[282px]" : "discover-location"
+      }
+    >
+      {variant === "map" && (
+        <div className="absolute inset-0 overflow-hidden bg-[#e0f0ea]">
+          {mounted && (
+            <MapInner
+              center={position}
+              range={range}
+              unit={unit}
+              places={pinPlaces}
+              color={typeConfig.markerColor}
+              centerLabel={
+                selectedArea ||
+                selectedCity ||
+                (centeredOnUser ? "your location" : "these listings")
+              }
+              typeLabel={typeConfig.plural}
+              centeredOnUser={centeredOnUser}
             />
-            <CustomSelect
-              value={selectedArea}
-              options={[
-                { value: "", label: "All Areas" },
-                ...areaOptions.map((a) => ({ value: a.name, label: a.name })),
-              ]}
-              onChange={(val) => setSelectedArea(val)}
-              icon={<MapPin size={13} />}
-              className="flex-1"
-              triggerClassName="h-9 rounded-xl border border-border bg-gray-50 text-xs font-semibold text-foreground shadow-none"
-              menuClassName="w-full"
-            />
-          </div>
-
-          {geoStatus !== "unsupported" && (
-            <div className="flex flex-wrap items-center justify-between gap-2 -mt-1">
-              <button
-                type="button"
-                onClick={() => (centeredOnUser ? clearUserLocation() : void locateUser())}
-                disabled={geoStatus === "prompting"}
-                className={`flex h-8 items-center gap-1.5 rounded-xl border px-2.5 text-xs font-semibold transition cursor-pointer disabled:cursor-wait disabled:opacity-60 ${
-                  centeredOnUser
-                    ? "border-brand bg-brand-soft text-brand"
-                    : "border-border bg-gray-50 text-foreground hover:border-brand/40"
-                }`}
-              >
-                <LocateFixed size={13} />
-                {geoStatus === "prompting"
-                  ? "Locating…"
-                  : centeredOnUser
-                    ? "Using my location"
-                    : geoNotice
-                      ? "Try again"
-                      : "Use my location"}
-              </button>
-              {/* A city or area the visitor picked outranks their position, so
-                  say so rather than leaving the button looking broken. */}
-              {userLocation && !centeredOnUser && (
-                <span className="text-muted-foreground text-[11px]">
-                  {selectedArea || selectedCity} selected
-                </span>
-              )}
-              {/* What to do on screen; the browser's own wording, which names
-                  the real cause, on hover. */}
-              {geoNotice && (
-                <span
-                  title={[geoNotice.text, geoNotice.detail].filter(Boolean).join(" — ")}
-                  className="text-muted-foreground min-w-0 flex-1 text-right text-[11px] leading-tight"
-                >
-                  {geoNotice.text}
-                </span>
-              )}
-            </div>
           )}
+          <div className="bg-brand/5 pointer-events-none absolute inset-0" />
+        </div>
+      )}
 
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-900 font-semibold text-sm">Radius Range</span>
-              <div className="flex rounded-xl border border-gray-200 overflow-hidden bg-gray-50">
-                {(["km", "miles"] as const).map((u) => (
-                  <button
-                    key={u}
-                    type="button"
-                    onClick={() => setUnit(u)}
-                    className={`px-3 py-1 text-xs font-medium transition-colors cursor-pointer capitalize ${
-                      unit === u ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"
-                    }`}
-                  >
-                    {u}
-                  </button>
-                ))}
-              </div>
+      {variant === "filters" && (
+        <div>
+          <div className="shadow-card border-border flex flex-col gap-4 rounded-2xl border bg-white p-5">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-sm font-semibold text-gray-900">Location</span>
+              <span
+                className="flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold"
+                style={{
+                  color: typeConfig.markerColor,
+                  backgroundColor: `${typeConfig.markerColor}14`,
+                }}
+              >
+                <BusinessTypeIcon type={businessType} size={11} />
+                {pinnedCount} {typeConfig.plural} on map
+              </span>
             </div>
-            <RangeSlider value={range} onChange={setRange} />
+
+            <div className="flex gap-2">
+              <CustomSelect
+                value={selectedCity}
+                options={[
+                  { value: "", label: "All cities" },
+                  ...locations.map((c) => ({ value: c.name, label: c.name })),
+                ]}
+                onChange={(val) => setSelectedCity(val)}
+                icon={<Building2 size={13} />}
+                className="flex-1"
+                triggerClassName="h-9 rounded-xl border border-border bg-gray-50 text-xs font-semibold text-foreground shadow-none"
+                menuClassName="w-full"
+              />
+              <CustomSelect
+                value={selectedArea}
+                options={[
+                  { value: "", label: "All Areas" },
+                  ...areaOptions.map((a) => ({ value: a.name, label: a.name })),
+                ]}
+                onChange={(val) => setSelectedArea(val)}
+                icon={<MapPin size={13} />}
+                className="flex-1"
+                triggerClassName="h-9 rounded-xl border border-border bg-gray-50 text-xs font-semibold text-foreground shadow-none"
+                menuClassName="w-full"
+              />
+            </div>
+
+            {geoStatus !== "unsupported" && (
+              <div className="-mt-1 flex flex-wrap items-center justify-between gap-2">
+                <button
+                  type="button"
+                  onClick={() => (centeredOnUser ? clearUserLocation() : void locateUser())}
+                  disabled={geoStatus === "prompting"}
+                  className={`flex h-8 cursor-pointer items-center gap-1.5 rounded-xl border px-2.5 text-xs font-semibold transition disabled:cursor-wait disabled:opacity-60 ${
+                    centeredOnUser
+                      ? "border-brand bg-brand-soft text-brand"
+                      : "border-border text-foreground hover:border-brand/40 bg-gray-50"
+                  }`}
+                >
+                  <LocateFixed size={13} />
+                  {geoStatus === "prompting"
+                    ? "Locating…"
+                    : centeredOnUser
+                      ? "Using my location"
+                      : geoNotice
+                        ? "Try again"
+                        : "Use my location"}
+                </button>
+                {/* A city or area the visitor picked outranks their position, so
+                  say so rather than leaving the button looking broken. */}
+                {userLocation && !centeredOnUser && (
+                  <span className="text-muted-foreground text-[11px]">
+                    {selectedArea || selectedCity} selected
+                  </span>
+                )}
+                {/* What to do on screen; the browser's own wording, which names
+                  the real cause, on hover. */}
+                {geoNotice && (
+                  <span
+                    title={[geoNotice.text, geoNotice.detail].filter(Boolean).join(" — ")}
+                    className="text-muted-foreground min-w-0 flex-1 text-right text-[11px] leading-tight"
+                  >
+                    {geoNotice.text}
+                  </span>
+                )}
+              </div>
+            )}
+
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-gray-900">Radius Range</span>
+                <div className="flex overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
+                  {(["km", "miles"] as const).map((u) => (
+                    <button
+                      key={u}
+                      type="button"
+                      onClick={() => setUnit(u)}
+                      className={`cursor-pointer px-3 py-1 text-xs font-medium capitalize transition-colors ${
+                        unit === u
+                          ? "bg-white text-gray-900 shadow-sm"
+                          : "text-gray-400 hover:text-gray-600"
+                      }`}
+                    >
+                      {u}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <RangeSlider value={range} onChange={setRange} />
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
