@@ -216,7 +216,10 @@
     background-color: var(--brand);
     color: var(--brand-foreground);
     box-shadow: var(--shadow-soft);
-    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+    transition:
+      transform 0.2s,
+      box-shadow 0.2s,
+      background-color 0.2s;
   }
 
   .btn-primary:hover {
@@ -544,4 +547,69 @@
 }
 .tippy-box[data-theme~="bizfindly"][data-animation="shift-away-subtle"][data-state="hidden"][data-placement^="bottom"] {
   transform: translateY(-4px);
+}
+/* AI discovery workspace */
+.discover-filter-card {
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: white;
+  padding: 16px;
+  box-shadow: var(--shadow-soft);
+}
+.discover-location > div > div {
+  border-radius: 22px;
+  padding: 16px;
+  box-shadow: var(--shadow-soft);
+  gap: 12px;
+}
+.discover-location > div > div > div:first-child > span:last-child {
+  display: none;
+}
+.discover-location > div > div > div:nth-child(2) {
+  flex-direction: column;
+}
+.discover-location button {
+  border-radius: 999px;
+}
+.discover-location > div > div > div:nth-child(3) > button {
+  width: 100%;
+  justify-content: center;
+  background: white;
+  border-style: dashed;
+}
+.discover-filters > div:first-child {
+  padding: 0 4px;
+}
+.discover-filters > div:last-child {
+  background: white;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+}
+.discover-place-card h3 {
+  font-size: 14px;
+}
+.discover-place-card .line-clamp-2 {
+  display: none;
+}
+.discover-expanded-map > div {
+  height: 100%;
+}
+@media (max-width: 1023px) {
+  .discover-filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .discover-filters > * {
+    margin: 0;
+  }
+  .discover-filters > div:first-child {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 480px) {
+  .discover-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

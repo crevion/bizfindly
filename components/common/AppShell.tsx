@@ -7,12 +7,15 @@ import { Footer } from "@/components/common/Footer";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isFullscreen = pathname.startsWith("/claim-business");
+  const isDiscover = pathname === "/ai-discover";
+  const isFullscreen = pathname.startsWith("/claim-business") || isDiscover;
 
   return (
-    <div className="flex min-h-screen flex-col">
-      {!isFullscreen && <Header />}
-      <main className="flex-1 pb-24 md:pb-0">{children}</main>
+    <div
+      className={`flex min-h-screen flex-col ${isDiscover ? "bg-background [--background:#f9f6f2]" : ""}`}
+    >
+      {(!isFullscreen || isDiscover) && <Header />}
+      <main className={isFullscreen ? "flex-1" : "flex-1 pb-24 md:pb-0"}>{children}</main>
       {!isFullscreen && <Footer />}
       {!isFullscreen && <MobileNav />}
     </div>
