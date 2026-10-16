@@ -82,7 +82,7 @@ const collectionsData = [
 export function Collections() {
   return (
     <section className="surface-warm border-border border-y">
-      <div className="mx-auto max-w-7xl px-4 py-14 md:px-8 md:py-20">
+      <div className="site-container py-14 md:py-20">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">
             <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">

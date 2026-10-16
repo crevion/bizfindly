@@ -19,7 +19,16 @@ export default function ContactPage() {
   const submitting = useRef(false);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof ContactInput, string>>>({});
-  const page = useQuery({ queryKey: ["contact-page"], queryFn: contactApi.page, retry: false });
+  const page = useQuery({
+    queryKey: ["contact-page"],
+    queryFn: contactApi.page,
+    // Retry temporary connection and server failures, but not invalid requests.
+    retry: (failureCount, error) => {
+      const temporaryFailure = !(error instanceof ApiError) || error.status === 0 || error.status >= 500;
+      return temporaryFailure && failureCount < 2;
+    },
+    retryDelay: 1000,
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,18 +74,29 @@ export default function ContactPage() {
 
   if (page.isPending)
     return (
-      <div className="mx-auto max-w-7xl px-4 py-16" role="status">
+      <div className="site-container py-16" role="status">
         Loading contact information…
       </div>
     );
   if (page.isError)
     return (
-      <div className="mx-auto max-w-7xl px-4 py-16" role="alert">
-        <p>{page.error.message}</p>
-        <button onClick={() => void page.refetch()} className="mt-3 underline">
-          Try again
-        </button>
-      </div>
+      <section className="mx-auto max-w-4xl px-4 py-16 md:px-8">
+        <h1 className="font-display text-3xl font-bold">Contact BizFindly</h1>
+        <div role="alert" className="border-border bg-card mt-6 rounded-2xl border p-6">
+          <p className="font-semibold">Contact information is temporarily unavailable.</p>
+          <p className="text-muted-foreground mt-2 text-sm">
+            We couldn&apos;t connect to the server. Please try again shortly.
+          </p>
+          <button
+            type="button"
+            onClick={() => void page.refetch()}
+            disabled={page.isFetching}
+            className="bg-brand text-brand-foreground mt-4 min-h-11 cursor-pointer rounded-full px-5 py-2 text-sm font-semibold disabled:cursor-wait disabled:opacity-50"
+          >
+            {page.isFetching ? "Retrying…" : "Try again"}
+          </button>
+        </div>
+      </section>
     );
   const contact = page.data;
 
@@ -100,7 +120,7 @@ export default function ContactPage() {
       </section>
 
       {/* Main Grid: Info + Contact Form */}
-      <section className="mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-16">
+      <section className="site-container py-12 md:py-16">
         <div className="grid gap-10 lg:grid-cols-[1fr_1.3fr]">
           {/* Info Cards */}
           <div className="space-y-6">

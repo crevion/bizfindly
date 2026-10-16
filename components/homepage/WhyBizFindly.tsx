@@ -6,7 +6,7 @@ export function WhyBizFindly({ counts }: { counts: (number | undefined)[] }) {
   ].map((item, index) => ({ ...item, stat: counts[index]?.toLocaleString() ?? "—" }));
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-16 md:px-8">
+    <section className="site-container py-16">
       <div className="mb-10 max-w-2xl">
         <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">
           Why BizFindly

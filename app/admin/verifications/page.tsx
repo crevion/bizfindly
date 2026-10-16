@@ -25,7 +25,7 @@ export default function AdminVerificationsPage() {
   const active = claims.find((c) => c.id === activeId) || visible[0];
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-12">
+    <div className="site-container py-8 md:py-12">
       <AdminHeader />
       <FilterTabs claims={claims} filter={filter} setFilter={setFilter} />
 

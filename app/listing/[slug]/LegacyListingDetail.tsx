@@ -108,7 +108,7 @@ export function LegacyListingDetail({ listing }: { listing: LegacyListing }) {
         </div>
       )}
 
-      <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-12">
+      <div className="site-container py-8 md:py-12">
         <div className="grid gap-10 lg:grid-cols-[1.7fr_1fr]">
           <div className="min-w-0">
             <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs font-semibold tracking-wider uppercase">

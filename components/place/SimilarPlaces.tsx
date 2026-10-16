@@ -8,7 +8,7 @@ export function SimilarPlaces({ places }: { places: Place[] }) {
   return (
     <section className="mt-16">
       <h2 className="font-display text-2xl font-bold md:text-3xl">You might also love</h2>
-      <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="mt-6 grid grid-cols-1 gap-4 min-[400px]:grid-cols-2 md:grid-cols-4">
         {places.map((p) => (
           <PlaceCard key={p.id} place={p} />
         ))}

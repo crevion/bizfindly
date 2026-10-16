@@ -1,6 +1,7 @@
 "use client";
 
 import { Dumbbell, Palmtree, Store, Utensils, type LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { CustomSelect } from "@/components/common/CustomSelect";
 import { usePlaceFinderStore } from "./usePlaceFinderStore";
 import { BUSINESS_TYPES, businessTypeConfig, type BusinessType } from "./businessTypes";
@@ -48,14 +49,14 @@ export function BusinessTypeSelect({
       }))}
       onChange={(val) => setBusinessType(val as BusinessType)}
       icon={<Store size={14} />}
-      className={className}
+      className={cn("w-full min-w-[200px] sm:w-auto", className)}
       triggerClassName={
         triggerClassName ??
         `h-11 rounded-2xl border-border bg-card px-4 text-sm font-bold text-foreground shadow-soft ${
           isLoading ? "opacity-80" : ""
         }`
       }
-      menuClassName="w-full min-w-[200px]"
+      menuClassName="left-0 right-auto w-full min-w-0 max-w-full"
     />
   );
 }

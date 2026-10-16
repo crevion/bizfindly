@@ -1,7 +1,9 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef } from "react";
+import { BUDGET_MAX, DEFAULT_LIST_TAB, DEFAULT_SORT } from "./constants";
+import { DEFAULT_BUSINESS_TYPE } from "./businessTypes";
 import { filtersToParams, paramsToFilters, type UrlFilters } from "./filterParams";
 import { usePlaceFinderStore } from "./usePlaceFinderStore";
 
@@ -21,19 +23,40 @@ export function useFilterUrlSync() {
   const router = useRouter();
   const pathname = usePathname();
 
+  const searchParams = useSearchParams();
+  const queryString = searchParams.toString();
+  const lastWrittenQuery = useRef<string | null>(null);
+  const readingUrl = useRef(false);
+
   useEffect(() => {
-    const store = usePlaceFinderStore;
+    // Our own filter updates already changed the store. Only read navigation.
+    if (queryString === lastWrittenQuery.current) return;
+    lastWrittenQuery.current = queryString;
+    readingUrl.current = true;
+    const state = usePlaceFinderStore.getState();
+    state.stopChat();
+    state.applyUrlFilters({
+      businessType: DEFAULT_BUSINESS_TYPE,
+      searchPlace: "", searchCuisine: "", selectedCity: "", selectedArea: "",
+      range: 0, unit: "km", minRating: 0, minBudget: 0, maxBudget: BUDGET_MAX,
+      facets: {}, openNow: false, listTab: DEFAULT_LIST_TAB, sortBy: DEFAULT_SORT,
+      ...paramsToFilters(new URLSearchParams(queryString)),
+    });
+    readingUrl.current = false;
+    if (state.initialized) {
+      void usePlaceFinderStore.getState().fetchPlaces();
+      void usePlaceFinderStore.getState().loadLocations();
+    }
+  }, [queryString]);
 
-    const fromUrl = paramsToFilters(new URLSearchParams(window.location.search));
-    if (Object.keys(fromUrl).length) store.getState().applyUrlFilters(fromUrl);
-
+  useEffect(() => {
     const write = (state: UrlFilters) => {
+      if (readingUrl.current) return;
       const query = filtersToParams(state).toString();
-      if (query === window.location.search.replace(/^\?/, "")) return;
+      if (query === lastWrittenQuery.current) return;
+      lastWrittenQuery.current = query;
       router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
     };
-
-    write(store.getState());
-    return store.subscribe(write);
+    return usePlaceFinderStore.subscribe(write);
   }, [router, pathname]);
 }

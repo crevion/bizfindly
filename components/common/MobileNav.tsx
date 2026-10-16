@@ -20,7 +20,7 @@ export function MobileNav() {
   ];
 
   return (
-    <nav className="fixed bottom-3 left-1/2 z-50 w-[min(94vw,420px)] -translate-x-1/2 md:hidden">
+    <nav className="fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-1/2 z-50 w-[min(94vw,420px)] -translate-x-1/2 md:hidden">
       <div className="glass shadow-card flex items-center justify-around rounded-full px-2 py-2">
         {items.map(({ to, label, icon: Icon, isAi, isUser }) => {
           const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
