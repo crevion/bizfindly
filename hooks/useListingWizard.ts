@@ -12,7 +12,7 @@ import { useListingStore } from "@/store/useListingStore";
 import { useVerificationStore } from "@/store/useVerificationStore";
 import { LISTING_STEPS } from "@/content/listingSteps";
 import type { ListingDraft, ListingStepId } from "@/types/listing";
-import { validateListing } from "@/lib/listingValidation";
+import { LISTING_SECTION, validateListing } from "@/lib/listingValidation";
 
 type PublishState = "idle" | "publishing" | "done" | "error";
 
@@ -53,16 +53,16 @@ export function useListingWizard() {
       case "category":
         return !!draft.category;
       case "basics":
-        return sections[0].length === 0;
+        return sections[LISTING_SECTION.identity].length === 0;
       case "details":
-        return sections[1].length === 0;
+        return sections[LISTING_SECTION.hoursAndPricing].length === 0;
       case "facilities":
       case "tags":
         return true;
       case "images":
-        return sections[2].length === 0;
+        return sections[LISTING_SECTION.photos].length === 0;
       case "description":
-        return sections[3].length === 0;
+        return sections[LISTING_SECTION.amenitiesAndStory].length === 0;
       case "preview":
         return sections.every((issues) => issues.length === 0);
       default:

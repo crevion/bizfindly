@@ -39,7 +39,7 @@ import { LiveListingPreview } from "@/components/list-business/LiveListingPrevie
 import { SuccessScreen } from "@/components/list-business/SuccessScreen";
 import { cn } from "@/lib/utils";
 import { parseCoordinatePair } from "@/lib/maps";
-import { validateListing } from "@/lib/listingValidation";
+import { LISTING_SECTION, validateListing } from "@/lib/listingValidation";
 import type { ListingCategory, ListingDraft } from "@/types/listing";
 
 const SECTIONS = [
@@ -187,7 +187,7 @@ export default function ListBusinessPage() {
   const cfg = draft.category ? CATEGORIES[draft.category] : CATEGORIES.restaurant;
 
   const sectionIssues = validateListing(draft, Boolean(coverImage));
-  const [isSection1Complete, isSection2Complete, isSection3Complete, isSection4Complete] =
+  const [isIdentityComplete, isHoursAndPricingComplete, isPhotosComplete, isStoryComplete] =
     sectionIssues.map((issues) => issues.length === 0);
   const canPublish = sectionIssues.every((issues) => issues.length === 0);
   const visibleIssues = activeSection === 3 ? sectionIssues.flat() : sectionIssues[activeSection];
@@ -332,10 +332,10 @@ export default function ListBusinessPage() {
               const Icon = sec.icon;
               const isActive = activeSection === sec.id;
               const isDone =
-                (sec.id === 0 && isSection1Complete) ||
-                (sec.id === 1 && isSection2Complete) ||
-                (sec.id === 2 && isSection3Complete) ||
-                (sec.id === 3 && isSection4Complete);
+                (sec.id === 0 && isIdentityComplete) ||
+                (sec.id === 1 && isHoursAndPricingComplete) ||
+                (sec.id === 2 && isPhotosComplete) ||
+                (sec.id === 3 && isStoryComplete);
 
               return (
                 <button
@@ -444,7 +444,7 @@ export default function ListBusinessPage() {
                       type="text"
                       required
                       aria-label="Business name"
-                      aria-invalid={showValidation && sectionIssues[0].some((issue) => issue.field === "name")}
+                      aria-invalid={showValidation && sectionIssues[LISTING_SECTION.identity].some((issue) => issue.field === "name")}
                       value={draft.name}
                       onChange={(e) => updateDraft({ name: e.target.value })}
                       placeholder={
@@ -468,7 +468,7 @@ export default function ListBusinessPage() {
                         type="text"
                         required
                         aria-label="Area or district"
-                      aria-invalid={showValidation && sectionIssues[0].some((issue) => issue.field === "area")}
+                      aria-invalid={showValidation && sectionIssues[LISTING_SECTION.identity].some((issue) => issue.field === "area")}
                       value={draft.area}
                         onChange={(e) => updateDraft({ area: e.target.value })}
                         placeholder="e.g. Dhanmondi, Gulshan, Gazipur"
@@ -503,7 +503,7 @@ export default function ListBusinessPage() {
                           type="tel"
                           required
                       aria-label="Phone number"
-                      aria-invalid={showValidation && sectionIssues[0].some((issue) => issue.field === "phone")}
+                      aria-invalid={showValidation && sectionIssues[LISTING_SECTION.identity].some((issue) => issue.field === "phone")}
                       value={draft.phone}
                           onChange={(e) => updateDraft({ phone: e.target.value })}
                           placeholder="+880 1700 000000"
@@ -524,7 +524,7 @@ export default function ListBusinessPage() {
                         rows={2}
                         required
                       aria-label="Full address"
-                      aria-invalid={showValidation && sectionIssues[0].some((issue) => issue.field === "location")}
+                      aria-invalid={showValidation && sectionIssues[LISTING_SECTION.identity].some((issue) => issue.field === "location")}
                       value={draft.location}
                         onChange={(e) => updateDraft({ location: e.target.value })}
                         placeholder="e.g. House 42, Road 27, Dhanmondi 15, Dhaka 1209"
@@ -543,7 +543,7 @@ export default function ListBusinessPage() {
                       <input
                         type="url"
                         aria-label="Google Maps link"
-                      aria-invalid={showValidation && sectionIssues[0].some((issue) => issue.field === "mapUrl")}
+                      aria-invalid={showValidation && sectionIssues[LISTING_SECTION.identity].some((issue) => issue.field === "mapUrl")}
                       value={draft.mapUrl}
                         onChange={(e) => updateDraft({ mapUrl: e.target.value })}
                         placeholder="https://maps.google.com/..."
@@ -563,7 +563,7 @@ export default function ListBusinessPage() {
                         step="any"
                         inputMode="decimal"
                         aria-label="Latitude"
-                      aria-invalid={showValidation && sectionIssues[0].some((issue) => issue.field === "latitude")}
+                      aria-invalid={showValidation && sectionIssues[LISTING_SECTION.identity].some((issue) => issue.field === "latitude")}
                       value={draft.latitude}
                         onChange={(e) => updateDraft({ latitude: e.target.value })}
                         onPaste={pasteCoordinates}
@@ -580,7 +580,7 @@ export default function ListBusinessPage() {
                         step="any"
                         inputMode="decimal"
                         aria-label="Longitude"
-                      aria-invalid={showValidation && sectionIssues[0].some((issue) => issue.field === "longitude")}
+                      aria-invalid={showValidation && sectionIssues[LISTING_SECTION.identity].some((issue) => issue.field === "longitude")}
                       value={draft.longitude}
                         onChange={(e) => updateDraft({ longitude: e.target.value })}
                         onPaste={pasteCoordinates}
@@ -605,7 +605,7 @@ export default function ListBusinessPage() {
                       <input
                         type="url"
                         aria-label="Website link"
-                      aria-invalid={showValidation && sectionIssues[0].some((issue) => issue.field === "website")}
+                      aria-invalid={showValidation && sectionIssues[LISTING_SECTION.identity].some((issue) => issue.field === "website")}
                       value={draft.website || ""}
                         onChange={(e) => updateDraft({ website: e.target.value })}
                         placeholder="https://your-business.com"
@@ -619,7 +619,7 @@ export default function ListBusinessPage() {
                 <div className="flex justify-end">
                   <button
                     type="button"
-                    onClick={() => navigateToSection(1)}
+                    onClick={() => navigateToSection(LISTING_SECTION.hoursAndPricing)}
                     className="inline-flex items-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-brand-foreground shadow-soft transition hover:shadow-card cursor-pointer"
                   >
                     Continue to Hours & Pricing <ArrowRight className="h-4 w-4" />
@@ -652,7 +652,7 @@ export default function ListBusinessPage() {
                         type="text"
                         required
                         aria-label="Operating hours"
-                      aria-invalid={showValidation && sectionIssues[1].some((issue) => issue.field === "hours")}
+                      aria-invalid={showValidation && sectionIssues[LISTING_SECTION.hoursAndPricing].some((issue) => issue.field === "hours")}
                       value={draft.hours}
                         onChange={(e) => updateDraft({ hours: e.target.value })}
                         placeholder="e.g. 11:00 AM – 11:30 PM"
@@ -695,7 +695,7 @@ export default function ListBusinessPage() {
                           type="number"
                           required
                       aria-label="Minimum price"
-                      aria-invalid={showValidation && sectionIssues[1].some((issue) => issue.field === "priceMin")}
+                      aria-invalid={showValidation && sectionIssues[LISTING_SECTION.hoursAndPricing].some((issue) => issue.field === "priceMin")}
                       value={draft.priceMin}
                           onChange={(e) => updateDraft({ priceMin: e.target.value })}
                           placeholder={cfg?.priceMinPlaceholder || "500"}
@@ -715,7 +715,7 @@ export default function ListBusinessPage() {
                         <input
                           type="number"
                           aria-label="Maximum price"
-                      aria-invalid={showValidation && sectionIssues[1].some((issue) => issue.field === "priceMax")}
+                      aria-invalid={showValidation && sectionIssues[LISTING_SECTION.hoursAndPricing].some((issue) => issue.field === "priceMax")}
                       value={draft.priceMax}
                           onChange={(e) => updateDraft({ priceMax: e.target.value })}
                           placeholder={cfg?.priceMaxPlaceholder || "2500"}
@@ -787,14 +787,14 @@ export default function ListBusinessPage() {
                 <div className="flex items-center justify-between">
                   <button
                     type="button"
-                    onClick={() => navigateToSection(0)}
+                    onClick={() => navigateToSection(LISTING_SECTION.identity)}
                     className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground cursor-pointer"
                   >
                     <ArrowLeft className="h-4 w-4" /> Back to Identity
                   </button>
                   <button
                     type="button"
-                    onClick={() => navigateToSection(2)}
+                    onClick={() => navigateToSection(LISTING_SECTION.photos)}
                     className="inline-flex items-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-brand-foreground shadow-soft transition hover:shadow-card cursor-pointer"
                   >
                     Continue to Photos <ArrowRight className="h-4 w-4" />
@@ -822,14 +822,14 @@ export default function ListBusinessPage() {
                 <div className="flex items-center justify-between">
                   <button
                     type="button"
-                    onClick={() => navigateToSection(1)}
+                    onClick={() => navigateToSection(LISTING_SECTION.hoursAndPricing)}
                     className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground cursor-pointer"
                   >
                     <ArrowLeft className="h-4 w-4" /> Back to Hours
                   </button>
                   <button
                     type="button"
-                    onClick={() => navigateToSection(3)}
+                    onClick={() => navigateToSection(LISTING_SECTION.amenitiesAndStory)}
                     className="inline-flex items-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-brand-foreground shadow-soft transition hover:shadow-card cursor-pointer"
                   >
                     Continue to Amenities <ArrowRight className="h-4 w-4" />
@@ -933,7 +933,7 @@ export default function ListBusinessPage() {
                     rows={4}
                     required
                       aria-label="Business description"
-                      aria-invalid={showValidation && sectionIssues[3].some((issue) => issue.field === "description")}
+                      aria-invalid={showValidation && sectionIssues[LISTING_SECTION.amenitiesAndStory].some((issue) => issue.field === "description")}
                       value={draft.description}
                     onChange={(e) => updateDraft({ description: e.target.value })}
                     placeholder="Tell patrons what makes your venue, dishes, or trainers unique..."
@@ -952,7 +952,7 @@ export default function ListBusinessPage() {
                 <div className="flex items-center justify-between pt-2">
                   <button
                     type="button"
-                    onClick={() => navigateToSection(2)}
+                    onClick={() => navigateToSection(LISTING_SECTION.photos)}
                     className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground cursor-pointer"
                   >
                     <ArrowLeft className="h-4 w-4" /> Back to Photos

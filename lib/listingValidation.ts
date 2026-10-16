@@ -5,57 +5,159 @@ export interface ListingIssue {
   message: string;
 }
 
-/** The four sections share these rules with the final publish guard. */
-export function validateListing(draft: ListingDraft, hasCover: boolean): ListingIssue[][] {
-  const sections: ListingIssue[][] = [[], [], [], []];
-  const add = (section: number, field: ListingIssue["field"], message: string) =>
-    sections[section].push({ field, message });
-  if (!draft.category || !["restaurant", "resort", "gym"].includes(draft.category))
-    add(0, "category", "Choose a business category.");
-  if (draft.name.trim().length < 2)
-    add(0, "name", "Enter a business name with at least 2 characters.");
-  if (!draft.area.trim()) add(0, "area", "Enter the area or district.");
-  if (draft.location.trim().length < 2) add(0, "location", "Enter the full street address.");
-  const phone = draft.phone.trim();
-  if (!/^\+?[\d\s().-]+$/.test(phone) || !/^[\d]{7,15}$/.test(phone.replace(/\D/g, "")))
-    add(0, "phone", "Enter a valid phone number with 7–15 digits.");
-  for (const field of ["mapUrl", "website"] as const) {
-    const value = draft[field]?.trim();
-    if (!value) continue;
-    try {
-      if (!["http:", "https:"].includes(new URL(value).protocol)) throw new Error();
-    } catch {
-      add(
-        0,
-        field,
-        `Enter a valid ${field === "mapUrl" ? "Google Maps" : "website"} link starting with http:// or https://.`,
+// Named positions of the four tabs in the listing wizard.
+export const LISTING_SECTION = {
+  identity: 0,
+  hoursAndPricing: 1,
+  photos: 2,
+  amenitiesAndStory: 3,
+} as const;
+
+function addIssue(issues: ListingIssue[], field: ListingIssue["field"], message: string) {
+  issues.push({ field, message });
+}
+
+function isValidPhoneNumber(phoneNumber: string): boolean {
+  // Allow an optional leading +, digits, spaces, parentheses, dots and dashes.
+  const hasAllowedCharacters = /^\+?[\d\s().-]+$/.test(phoneNumber);
+  const digitsOnly = phoneNumber.replace(/\D/g, "");
+  const hasValidLength = digitsOnly.length >= 7 && digitsOnly.length <= 15;
+
+  return hasAllowedCharacters && hasValidLength;
+}
+
+function isValidWebLink(link: string): boolean {
+  try {
+    const parsedLink = new URL(link);
+    const isHttp = parsedLink.protocol === "http:";
+    const isHttps = parsedLink.protocol === "https:";
+    return isHttp || isHttps;
+  } catch {
+    return false;
+  }
+}
+
+function isValidCoordinate(value: string, minimum: number, maximum: number): boolean {
+  if (value === "") {
+    return false;
+  }
+
+  const coordinate = Number(value);
+  const isNumber = Number.isFinite(coordinate);
+  const isWithinRange = coordinate >= minimum && coordinate <= maximum;
+  return isNumber && isWithinRange;
+}
+
+function validateIdentity(draft: ListingDraft): ListingIssue[] {
+  const issues: ListingIssue[] = [];
+  const hasValidCategory =
+    draft.category === "restaurant" || draft.category === "resort" || draft.category === "gym";
+
+  if (!hasValidCategory) {
+    addIssue(issues, "category", "Choose a business category.");
+  }
+  if (draft.name.trim().length < 2) {
+    addIssue(issues, "name", "Enter a business name with at least 2 characters.");
+  }
+  if (draft.area.trim() === "") {
+    addIssue(issues, "area", "Enter the area or district.");
+  }
+  if (draft.location.trim().length < 2) {
+    addIssue(issues, "location", "Enter the full street address.");
+  }
+  if (!isValidPhoneNumber(draft.phone.trim())) {
+    addIssue(issues, "phone", "Enter a valid phone number with 7–15 digits.");
+  }
+
+  // These links are optional. Check them only when the owner enters one.
+  const googleMapsLink = draft.mapUrl.trim();
+  if (googleMapsLink !== "" && !isValidWebLink(googleMapsLink)) {
+    addIssue(issues, "mapUrl", "Enter a valid Google Maps link starting with http:// or https://.");
+  }
+  const websiteLink = draft.website?.trim() ?? "";
+  if (websiteLink !== "" && !isValidWebLink(websiteLink)) {
+    addIssue(issues, "website", "Enter a valid website link starting with http:// or https://.");
+  }
+
+  // Coordinates are optional, but latitude and longitude must be entered together.
+  const latitude = draft.latitude.trim();
+  const longitude = draft.longitude.trim();
+  const hasAnyCoordinate = latitude !== "" || longitude !== "";
+
+  if (hasAnyCoordinate) {
+    if (!isValidCoordinate(latitude, -90, 90)) {
+      addIssue(
+        issues,
+        "latitude",
+        "Enter a latitude between -90 and 90, or leave both coordinates empty.",
       );
     }
-  }
-  const lat = draft.latitude.trim();
-  const lng = draft.longitude.trim();
-  if (lat || lng) {
-    if (!lat || !Number.isFinite(Number(lat)) || Math.abs(Number(lat)) > 90)
-      add(0, "latitude", "Enter a latitude between -90 and 90, or leave both coordinates empty.");
-    if (!lng || !Number.isFinite(Number(lng)) || Math.abs(Number(lng)) > 180)
-      add(
-        0,
+    if (!isValidCoordinate(longitude, -180, 180)) {
+      addIssue(
+        issues,
         "longitude",
         "Enter a longitude between -180 and 180, or leave both coordinates empty.",
       );
+    }
   }
-  if (!draft.hours.trim()) add(1, "hours", "Enter the operating hours.");
-  const min = draft.priceMin.trim();
-  const max = draft.priceMax.trim();
-  if (!min || !Number.isFinite(Number(min)) || Number(min) < 0)
-    add(1, "priceMin", "Enter a minimum price of zero or more.");
-  if (
-    max &&
-    (!Number.isFinite(Number(max)) || Number(max) < 0 || (min && Number(max) < Number(min)))
-  )
-    add(1, "priceMax", "Maximum price must be a valid number no lower than the minimum price.");
-  if (!hasCover) add(2, "cover", "Upload a cover photo before continuing.");
-  if (draft.description.trim().length < 11)
-    add(3, "description", "Describe your business using at least 11 characters.");
-  return sections;
+  return issues;
+}
+
+function validateHoursAndPricing(draft: ListingDraft): ListingIssue[] {
+  const issues: ListingIssue[] = [];
+  if (draft.hours.trim() === "") {
+    addIssue(issues, "hours", "Enter the operating hours.");
+  }
+
+  const minimumPriceText = draft.priceMin.trim();
+  const maximumPriceText = draft.priceMax.trim();
+  const minimumPrice = Number(minimumPriceText);
+  const maximumPrice = Number(maximumPriceText);
+  const hasMinimumPrice = minimumPriceText !== "";
+  const minimumPriceIsValid = Number.isFinite(minimumPrice) && minimumPrice >= 0;
+
+  if (!hasMinimumPrice || !minimumPriceIsValid) {
+    addIssue(issues, "priceMin", "Enter a minimum price of zero or more.");
+  }
+
+  // Maximum price is optional. If provided, it cannot be below the minimum.
+  if (maximumPriceText !== "") {
+    const maximumPriceIsValid = Number.isFinite(maximumPrice) && maximumPrice >= 0;
+    const maximumIsBelowMinimum = hasMinimumPrice && maximumPrice < minimumPrice;
+    if (!maximumPriceIsValid || maximumIsBelowMinimum) {
+      addIssue(
+        issues,
+        "priceMax",
+        "Maximum price must be a valid number no lower than the minimum price.",
+      );
+    }
+  }
+  return issues;
+}
+
+function validatePhotos(hasCoverPhoto: boolean): ListingIssue[] {
+  const issues: ListingIssue[] = [];
+  if (!hasCoverPhoto) {
+    addIssue(issues, "cover", "Upload a cover photo before continuing.");
+  }
+  return issues;
+}
+
+function validateStory(draft: ListingDraft): ListingIssue[] {
+  const issues: ListingIssue[] = [];
+  const descriptionLength = draft.description.trim().length;
+  if (descriptionLength < 11) {
+    addIssue(issues, "description", "Describe your business using at least 11 characters.");
+  }
+  return issues;
+}
+
+/** Both step navigation and publishing use these same validation rules. */
+export function validateListing(draft: ListingDraft, hasCoverPhoto: boolean): ListingIssue[][] {
+  const identityIssues = validateIdentity(draft);
+  const hoursAndPricingIssues = validateHoursAndPricing(draft);
+  const photoIssues = validatePhotos(hasCoverPhoto);
+  const storyIssues = validateStory(draft);
+
+  return [identityIssues, hoursAndPricingIssues, photoIssues, storyIssues];
 }
