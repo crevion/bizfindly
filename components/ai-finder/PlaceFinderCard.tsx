@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Bookmark, MapPin, Sparkles, Star, Tag } from "lucide-react";
 import { VerifiedBadge } from "@/components/common/VerifiedBadge";
-import toast from "react-hot-toast";
+import { useSavedPlace } from "@/lib/backend/saved/useSavedPlace";
 import type { Place } from "@/types/place";
 import { usePlaceFinderStore } from "./usePlaceFinderStore";
 
@@ -18,8 +18,11 @@ export function PlaceFinderCard({
   layout?: "grid" | "list";
   onAskAi?: () => void;
 }) {
-  const isSaved = usePlaceFinderStore((s) => s.savedPlaceIds.has(place.id));
-  const toggleSavedPlace = usePlaceFinderStore((s) => s.toggleSavedPlace);
+  const {
+    saved: isSaved,
+    pending: isSaving,
+    toggle: toggleSavedPlace,
+  } = useSavedPlace(place.category, place.slug);
   const selectedPlaceId = usePlaceFinderStore((s) => s.selectedPlaceId);
   const toggleSelectedPlace = usePlaceFinderStore((s) => s.toggleSelectedPlace);
 
@@ -31,12 +34,7 @@ export function PlaceFinderCard({
   const handleSave = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    toggleSavedPlace(place.id);
-    if (isSaved) {
-      toast.success("Removed from saved places");
-    } else {
-      toast.success("Saved to your collection");
-    }
+    void toggleSavedPlace();
   };
 
   const handleAskAi = (e: React.MouseEvent) => {
@@ -129,9 +127,10 @@ export function PlaceFinderCard({
             <button
               type="button"
               onClick={handleSave}
-              aria-label={isSaved ? "Unsave place" : "Save place"}
+              disabled={isSaving}
+              aria-label={isSaved ? "Remove from saved places" : "Save place"}
               aria-pressed={isSaved}
-              className={`flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border transition sm:h-7 sm:w-7 ${isSaved ? "border-brand bg-brand-soft text-brand" : "border-border text-muted-foreground hover:text-brand"}`}
+              className={`flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border transition disabled:cursor-wait disabled:opacity-50 sm:h-7 sm:w-7 ${isSaved ? "border-brand bg-brand-soft text-brand" : "border-border text-muted-foreground hover:text-brand"}`}
             >
               <Bookmark size={12} className={isSaved ? "fill-brand" : ""} />
             </button>
@@ -140,7 +139,7 @@ export function PlaceFinderCard({
               onClick={handleAskAi}
               aria-label={isSelected ? "Unpin place from AI chat" : "Ask AI about this place"}
               aria-pressed={isSelected}
-              className={`flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border transition sm:h-7 sm:w-7 ${isSelected ? "border-brand bg-brand text-white" : "border-border text-muted-foreground hover:text-brand"}`}
+              className={`flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border transition disabled:cursor-wait disabled:opacity-50 sm:h-7 sm:w-7 ${isSelected ? "border-brand bg-brand text-white" : "border-border text-muted-foreground hover:text-brand"}`}
             >
               <Sparkles size={12} />
             </button>
@@ -218,8 +217,10 @@ export function PlaceFinderCard({
               <button
                 type="button"
                 onClick={handleSave}
-                aria-label="Save place"
-                className={`flex h-11 w-11 cursor-pointer sm:h-8 sm:w-8 items-center justify-center rounded-full border transition ${
+                disabled={isSaving}
+                aria-label={isSaved ? "Remove from saved places" : "Save place"}
+                aria-pressed={isSaved}
+                className={`flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border transition sm:h-8 sm:w-8 ${
                   isSaved
                     ? "border-brand bg-brand-soft text-brand"
                     : "border-border bg-background text-muted-foreground hover:border-brand hover:text-brand"
@@ -231,7 +232,7 @@ export function PlaceFinderCard({
                 type="button"
                 onClick={handleAskAi}
                 title={isSelected ? "Pinned to AI Chat" : "Ask AI about this place"}
-                className={`flex h-11 w-11 cursor-pointer sm:h-8 sm:w-8 items-center justify-center rounded-full border transition ${
+                className={`flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border transition sm:h-8 sm:w-8 ${
                   isSelected
                     ? "border-brand bg-brand text-brand-foreground shadow-soft"
                     : "border-border bg-background text-muted-foreground hover:border-brand hover:text-brand"
