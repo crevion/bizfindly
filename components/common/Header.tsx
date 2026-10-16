@@ -10,12 +10,22 @@ import { UserDropdown } from "./UserDropdown";
 
 export function Header() {
   const pathname = usePathname();
+  const isDiscover = pathname === "/ai-discover";
   const user = useAuthStore((s) => s.user);
 
   return (
-    <header className="sticky top-0 z-40">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-background/90 to-transparent" />
-      <div className="relative mx-auto mt-2 flex h-16 max-w-7xl items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background/80 px-3 shadow-soft backdrop-blur-xl md:mx-4 md:gap-4 md:px-4 lg:mx-auto">
+    <header className={cn("sticky top-0 z-40", isDiscover && "bg-background px-4 py-2 lg:px-6")}>
+      {!isDiscover && (
+        <div className="from-background/90 pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b to-transparent" />
+      )}
+      <div
+        className={cn(
+          "border-border/70 bg-background/80 shadow-soft relative flex h-16 items-center justify-between gap-3 rounded-2xl border px-3 backdrop-blur-xl md:gap-4 md:px-4",
+          isDiscover
+            ? "mx-auto w-full max-w-[1552px]"
+            : "mx-auto mt-2 max-w-7xl md:mx-4 lg:mx-auto",
+        )}
+      >
         <Link href="/" className="flex shrink-0 items-center gap-2 transition hover:opacity-90">
           <img
             src="/images/logo/bizfindly-logo.png"
@@ -60,7 +70,7 @@ export function Header() {
               href="/join"
               aria-label="Sign in or join"
               title="Sign in or join"
-              className="ml-1 flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-border bg-card text-foreground shadow-soft transition hover:border-foreground/30 hover:scale-105 hover:bg-muted"
+              className="border-border bg-card text-foreground shadow-soft hover:border-foreground/30 hover:bg-muted ml-1 flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border transition hover:scale-105"
             >
               <User className="h-4 w-4" />
             </Link>
