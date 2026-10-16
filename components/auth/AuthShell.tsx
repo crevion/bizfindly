@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowLeft, Shield, Sparkles } from "lucide-react";
+import { ArrowLeft, Shield } from "lucide-react";
 
 export function AuthShell({
   title,
@@ -30,15 +30,6 @@ export function AuthShell({
           </Link>
           <div className="bg-background/60 text-muted-foreground inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium backdrop-blur">
             <Shield className="h-3.5 w-3.5" /> Secure sign-in
-          </div>
-        </div>
-
-        <div className="mt-10 flex items-center gap-3">
-          <span className="gradient-brand shadow-glow flex h-12 w-12 items-center justify-center rounded-2xl">
-            <Sparkles className="text-brand-foreground h-6 w-6" />
-          </span>
-          <div className="font-display text-2xl font-bold tracking-tight">
-            Biz<span className="text-gradient-brand">Findly</span>
           </div>
         </div>
 
