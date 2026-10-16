@@ -35,10 +35,16 @@ const buttonClass =
   "bg-foreground text-background rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-50";
 type Panel = "details" | "photos" | "offer" | "promotion" | "menu" | null;
 
-export function DashboardListingPanel({ listing }: { listing: DashboardListing }) {
+export function DashboardListingPanel({
+  listing,
+  initiallyEditing = false,
+}: {
+  listing: DashboardListing;
+  initiallyEditing?: boolean;
+}) {
   const token = useAuthStore((s) => s.token);
   const client = useQueryClient();
-  const [panel, setPanel] = useState<Panel>(null);
+  const [panel, setPanel] = useState<Panel>(initiallyEditing ? "details" : null);
   const key = ["dashboard", token, listing.id];
   const detail = useQuery({
     queryKey: [...key, "detail"],

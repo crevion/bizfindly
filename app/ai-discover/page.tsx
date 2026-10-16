@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { businessTypeConfig } from "@/components/ai-finder/businessTypes";
 import { ScrollArea } from "@/components/common/ScrollArea";
+import { useSyncSavedPlaces } from "@/components/ai-finder/useSyncSavedPlaces";
 
 const SCROLL_TOP_THRESHOLD = 320;
 
@@ -28,6 +29,7 @@ function AiFinderInner() {
   // Before anything reads the filters: the URL seeds them on first load, then
   // tracks them. Must stay above the fetch effect below.
   useFilterUrlSync();
+  const savedPlacesQuery = useSyncSavedPlaces();
 
   const openAI = usePlaceFinderStore((s) => s.openAI);
   const visiblePlaces = usePlaceFinderStore((s) => s.visiblePlaces);
@@ -54,7 +56,7 @@ function AiFinderInner() {
   const allPlaces = usePlaceFinderStore((s) => s.allPlaces);
   const listTab = usePlaceFinderStore((s) => s.listTab);
   const savedPlaceIds = usePlaceFinderStore((s) => s.savedPlaceIds);
-  const pinnedCount = (mapPlaces.length ? mapPlaces : allPlaces).filter(
+  const pinnedCount = (listTab === "Saved" ? visiblePlaces : mapPlaces.length ? mapPlaces : allPlaces).filter(
     (p) => p.coords && (listTab !== "Saved" || savedPlaceIds.has(p.id)),
   ).length;
 
@@ -226,6 +228,12 @@ function AiFinderInner() {
               </div>
             </div>
           </div>
+          {listTab === "Saved" && savedPlacesQuery.isError && (
+            <div role="alert" className="border-destructive/30 bg-card rounded-2xl border p-4 text-sm">
+              <p>Could not load your saved places. Please try again.</p>
+              <button type="button" onClick={() => void savedPlacesQuery.refetch()} className="text-brand mt-2 font-semibold">Try again</button>
+            </div>
+          )}
           {error && (
             <div
               role="alert"
@@ -247,7 +255,7 @@ function AiFinderInner() {
               </button>
             </div>
           )}
-          {isLoading ? (
+          {isLoading || (listTab === "Saved" && savedPlacesQuery.isLoading) ? (
             <PlaceListSkeleton count={4} />
           ) : error && visiblePlaces.length === 0 ? null : visiblePlaces.length === 0 ? (
             <PlaceListEmpty />
@@ -269,7 +277,7 @@ function AiFinderInner() {
               ))}
             </div>
           )}
-          {!isLoading && hasMore && (
+          {!isLoading && listTab !== "Saved" && hasMore && (
             <button
               type="button"
               disabled={isLoadingMore || isAiResponding}

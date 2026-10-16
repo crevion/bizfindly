@@ -59,7 +59,7 @@ export function SuccessScreen({
           </Link>
           {listingId && (
             <Link
-              href="/list-business"
+              href={`/dashboard?listing=${encodeURIComponent(listingId)}&category=${draft.category}&edit=true`}
               className="border-border bg-surface inline-flex items-center justify-center rounded-full border px-6 py-3.5 text-sm font-semibold"
             >
               Edit Listing

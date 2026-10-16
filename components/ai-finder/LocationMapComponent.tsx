@@ -358,6 +358,8 @@ export function LocationMapComponent({ variant = "map" }: { variant?: "map" | "f
   const mapPlaces = usePlaceFinderStore((s) => s.mapPlaces);
   const allPlaces = usePlaceFinderStore((s) => s.allPlaces);
   const listTab = usePlaceFinderStore((s) => s.listTab);
+  const savedPlaces = usePlaceFinderStore((s) => s.savedPlaces);
+  const savedBusinessType = usePlaceFinderStore((s) => s.businessType);
   const savedPlaceIds = usePlaceFinderStore((s) => s.savedPlaceIds);
   const placesCenter = usePlaceFinderStore((s) => s.placesCenter);
   const locations = usePlaceFinderStore((s) => s.locations);
@@ -379,8 +381,8 @@ export function LocationMapComponent({ variant = "map" }: { variant?: "map" | "f
   }, [locations, selectedCity]);
 
   const pinPlaces = useMemo(
-    () => mapPinsFor({ mapPlaces, allPlaces, listTab, savedPlaceIds }),
-    [mapPlaces, allPlaces, listTab, savedPlaceIds],
+    () => mapPinsFor({ mapPlaces, allPlaces, listTab, savedPlaceIds, savedPlaces, businessType: savedBusinessType }),
+    [mapPlaces, allPlaces, listTab, savedPlaceIds, savedPlaces, savedBusinessType],
   );
 
   const pinnedCount = useMemo(() => pinPlaces.filter((place) => place.coords).length, [pinPlaces]);
