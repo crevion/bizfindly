@@ -98,7 +98,7 @@ interface PlaceFinderState {
   setUnit: (val: "km" | "miles") => void;
   setListTab: (tab: ListTab) => void;
   setSortBy: (sort: SortOption) => void;
-  toggleSavedPlace: (placeId: string) => void;
+  setSavedPlaceIds: (placeIds: string[]) => void;
   toggleSelectedPlace: (placeId: string) => void;
   clearSelectedPlace: () => void;
   setChatInput: (val: string) => void;
@@ -386,14 +386,8 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
     set({ sortBy: sort });
     void get().fetchPlaces();
   },
-  toggleSavedPlace: (placeId) => {
-    const current = new Set(get().savedPlaceIds);
-    if (current.has(placeId)) {
-      current.delete(placeId);
-    } else {
-      current.add(placeId);
-    }
-    set({ savedPlaceIds: current });
+  setSavedPlaceIds: (placeIds) => {
+    set({ savedPlaceIds: new Set(placeIds) });
     if (get().listTab === "Saved") {
       set({ visiblePlaces: visibleFor(get(), get().allPlaces) });
     }

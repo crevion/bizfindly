@@ -86,9 +86,6 @@ export function Collections() {
       <div className="mx-auto max-w-7xl px-4 py-14 md:px-8 md:py-20">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">
-            <div className="bg-brand-soft text-brand mb-2 inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-bold tracking-wide uppercase">
-              Collections
-            </div>
             <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">
               Ideas for your next outing
             </h2>
