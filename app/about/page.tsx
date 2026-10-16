@@ -565,7 +565,7 @@ export default function AboutPage() {
       </section>
 
       {/* 7. High-Impact Closing CTA Banner */}
-      <section className="mx-auto max-w-7xl px-4 pb-16 md:px-8 md:pb-24">
+      <section className="mx-auto max-w-7xl px-4 md:px-8 md:pb-24">
         <div className="relative overflow-hidden rounded-3xl bg-foreground p-8 text-background md:p-16">
           <div className="absolute inset-0 opacity-15">
             <img

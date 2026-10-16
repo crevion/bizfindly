@@ -12,6 +12,7 @@ import { useListingStore } from "@/store/useListingStore";
 import { useVerificationStore } from "@/store/useVerificationStore";
 import { LISTING_STEPS } from "@/content/listingSteps";
 import type { ListingDraft, ListingStepId } from "@/types/listing";
+import { validateListing } from "@/lib/listingValidation";
 
 type PublishState = "idle" | "publishing" | "done" | "error";
 
@@ -38,31 +39,32 @@ export function useListingWizard() {
   const step: { id: ListingStepId; label: string } =
     LISTING_STEPS[stepIdx] ?? LISTING_STEPS[LISTING_STEPS.length - 1];
 
-  const next = () => setStepIdx(Math.min(LISTING_STEPS.length - 1, stepIdx + 1));
+  const next = () => {
+    if (canContinue) setStepIdx(Math.min(LISTING_STEPS.length - 1, stepIdx + 1));
+  };
   const back = () => {
     if (stepIdx === 0) router.push("/");
     else setStepIdx(stepIdx - 1);
   };
 
   const canContinue = (() => {
+    const sections = validateListing(draft, Boolean(cover));
     switch (step.id) {
       case "category":
         return !!draft.category;
       case "basics":
-        return draft.name.trim().length > 1 && draft.location.trim().length > 1;
+        return sections[0].length === 0;
       case "details":
-        return (
-          draft.priceMin.trim().length > 0 &&
-          draft.priceMax.trim().length > 0 &&
-          draft.hours.trim().length > 0
-        );
+        return sections[1].length === 0;
       case "facilities":
       case "tags":
         return true;
       case "images":
-        return Object.values(draft.images).some((arr) => arr && arr.length > 0);
+        return sections[2].length === 0;
       case "description":
-        return draft.description.trim().length > 10;
+        return sections[3].length === 0;
+      case "preview":
+        return sections.every((issues) => issues.length === 0);
       default:
         return true;
     }
@@ -70,6 +72,12 @@ export function useListingWizard() {
 
   const publish = async () => {
     if (publishState === "publishing") return;
+    const issues = validateListing(draft, Boolean(cover)).flat();
+    if (issues.length) {
+      setPublishError(issues.map((issue) => issue.message).join(" "));
+      setPublishState("error");
+      return;
+    }
     setPublishState("publishing");
     setPublishError(null);
     try {
