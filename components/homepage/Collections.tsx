@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 
-const unsplash = (s: string) =>
-  `https://images.unsplash.com/${s}?auto=format&fit=crop&w=1400&q=80`;
+const unsplash = (s: string) => `https://images.unsplash.com/${s}?auto=format&fit=crop&w=1400&q=80`;
 
 const collectionsData = [
   {
@@ -82,17 +81,14 @@ const collectionsData = [
 
 export function Collections() {
   return (
-    <section className="surface-warm border-y border-border">
+    <section className="surface-warm border-border border-y">
       <div className="mx-auto max-w-7xl px-4 py-14 md:px-8 md:py-20">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">
-            <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-brand-soft px-3 py-1 text-[11px] font-bold tracking-wide text-brand uppercase">
-              Collections
-            </div>
             <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">
               Ideas for your next outing
             </h2>
-            <p className="mt-2 max-w-xl text-sm text-muted-foreground md:text-base">
+            <p className="text-muted-foreground mt-2 max-w-xl text-sm md:text-base">
               Explore restaurants, resorts and gyms by occasion, budget and atmosphere.
             </p>
           </div>
@@ -104,7 +100,7 @@ export function Collections() {
               <Link
                 key={s.id}
                 href={s.to}
-                className="group relative block h-72 overflow-hidden rounded-3xl bg-card shadow-soft transition hover:-translate-y-1 hover:shadow-card cursor-pointer"
+                className="group bg-card shadow-soft hover:shadow-card relative block h-72 cursor-pointer overflow-hidden rounded-3xl transition hover:-translate-y-1"
               >
                 <img
                   src={s.cover}
@@ -114,10 +110,10 @@ export function Collections() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-5 text-white">
-                  <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider opacity-90">
+                  <div className="flex items-center gap-2 text-[11px] font-semibold tracking-wider uppercase opacity-90">
                     <span className="text-base">{s.emoji}</span>
                   </div>
-                  <h3 className="mt-2 font-display text-xl font-bold leading-tight md:text-2xl">
+                  <h3 className="font-display mt-2 text-xl leading-tight font-bold md:text-2xl">
                     {s.title}
                   </h3>
                   <p className="mt-1 line-clamp-2 text-sm opacity-90">{s.description}</p>
@@ -132,7 +128,7 @@ export function Collections() {
             <Link
               key={s.id}
               href={s.to}
-              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-sm font-semibold text-foreground shadow-soft transition hover:-translate-y-0.5 hover:border-brand/40 hover:text-brand cursor-pointer"
+              className="border-border bg-card text-foreground shadow-soft hover:border-brand/40 hover:text-brand inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-semibold transition hover:-translate-y-0.5"
             >
               <span>{s.emoji}</span>
               {s.title}
