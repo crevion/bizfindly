@@ -56,7 +56,7 @@ function AiFinderInner() {
   const allPlaces = usePlaceFinderStore((s) => s.allPlaces);
   const listTab = usePlaceFinderStore((s) => s.listTab);
   const savedPlaceIds = usePlaceFinderStore((s) => s.savedPlaceIds);
-  const pinnedCount = (mapPlaces.length ? mapPlaces : allPlaces).filter(
+  const pinnedCount = (listTab === "Saved" ? visiblePlaces : mapPlaces.length ? mapPlaces : allPlaces).filter(
     (p) => p.coords && (listTab !== "Saved" || savedPlaceIds.has(p.id)),
   ).length;
 
@@ -277,7 +277,7 @@ function AiFinderInner() {
               ))}
             </div>
           )}
-          {!isLoading && hasMore && (
+          {!isLoading && listTab !== "Saved" && hasMore && (
             <button
               type="button"
               disabled={isLoadingMore || isAiResponding}

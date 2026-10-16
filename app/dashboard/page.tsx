@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/backend/auth";
 import { dashboardApi } from "@/lib/backend/owner/dashboard";
@@ -10,6 +12,18 @@ import { EmptyDashboard } from "@/components/dashboard/EmptyDashboard";
 import { DashboardListingPanel } from "@/components/dashboard/DashboardListingPanel";
 
 export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div className="p-8" role="status">Loading dashboard…</div>}>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+function DashboardContent() {
+  const searchParams = useSearchParams();
+  const requestedListing = searchParams.get("listing");
+  const requestedCategory = searchParams.get("category");
+  const shouldEdit = searchParams.get("edit") === "true";
   const { user, token, hydrated } = useAuthStore();
   const [activeId, setActiveId] = useState<string | null>(null);
   const query = useInfiniteQuery({
@@ -20,6 +34,24 @@ export default function DashboardPage() {
     enabled: hydrated && !!user && !!token,
     retry: false,
   });
+  const listings = query.data?.pages.flatMap((page) => page.results) ?? [];
+  const requestedBusiness = listings.find((listing) => {
+    const matchesListing = listing.slug === requestedListing || listing.id === requestedListing;
+    const matchesCategory = !requestedCategory || listing.category === requestedCategory;
+    return matchesListing && matchesCategory;
+  });
+
+  const { hasNextPage, isFetchingNextPage, isFetchNextPageError, fetchNextPage } = query;
+
+  useEffect(() => {
+    // The submitted business may be on a later dashboard page.
+    if (requestedListing && !requestedBusiness && hasNextPage &&
+        !isFetchingNextPage && !isFetchNextPageError) {
+      void fetchNextPage();
+    }
+  }, [requestedListing, requestedBusiness, hasNextPage,
+      isFetchingNextPage, isFetchNextPageError, fetchNextPage]);
+
   if (!hydrated)
     return (
       <div className="p-8" role="status">
@@ -48,9 +80,22 @@ export default function DashboardPage() {
         </button>
       </div>
     );
-  const listings = query.data.pages.flatMap((page) => page.results);
+  if (requestedListing && !requestedBusiness) {
+    if (query.hasNextPage && !query.isFetchNextPageError) {
+      return <div className="p-8" role="status">Finding your listing…</div>;
+    }
+    return (
+      <div className="p-8" role="alert">
+        Could not find your submitted listing.
+        <button onClick={() => void query.refetch()} className="ml-2 underline">
+          Try again
+        </button>
+        <Link href="/dashboard" className="ml-2 underline">View all listings</Link>
+      </div>
+    );
+  }
   if (!listings.length) return <EmptyDashboard />;
-  const active = listings.find((listing) => listing.id === activeId) ?? listings[0];
+  const active = listings.find((listing) => listing.id === activeId) ?? requestedBusiness ?? listings[0];
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-12">
       <DashboardHeader />
@@ -75,7 +120,11 @@ export default function DashboardPage() {
           </button>
         )}
       </div>
-      <DashboardListingPanel key={`${token}:${active.id}`} listing={active} />
+      <DashboardListingPanel
+        key={`${token}:${active.id}`}
+        listing={active}
+        initiallyEditing={shouldEdit && active === requestedBusiness}
+      />
     </div>
   );
 }

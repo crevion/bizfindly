@@ -81,6 +81,7 @@ interface PlaceFinderState {
   stopChat: () => void;
   selectedPlaceId: string | null;
   savedPlaceIds: Set<string>;
+  savedPlaces: Place[];
 
   setOpenAI: (val: boolean) => void;
   setSearchPlace: (val: string) => void;
@@ -98,7 +99,7 @@ interface PlaceFinderState {
   setUnit: (val: "km" | "miles") => void;
   setListTab: (tab: ListTab) => void;
   setSortBy: (sort: SortOption) => void;
-  setSavedPlaceIds: (placeIds: string[]) => void;
+  setSavedPlaces: (places: Place[]) => void;
   toggleSelectedPlace: (placeId: string) => void;
   clearSelectedPlace: () => void;
   setChatInput: (val: string) => void;
@@ -117,19 +118,10 @@ interface PlaceFinderState {
   loadMorePlaces: () => Promise<void>;
 }
 
-/**
- * The loaded listings, narrowed by what only this browser knows.
- *
- * Everything else -- the business type, place, text search, cuisine, chips,
- * rating, budget, Open now, Trending and the sort order -- is decided by the
- * request (see listQueryString), so the loaded page already matches it and
- * re-checking it here could only disagree. Saved places are a set of slugs
- * held locally and nothing the backend can filter on, so that tab is applied
- * here.
- */
+/** Saved results come from the account API, independently of search pages. */
 const visibleFor = (state: PlaceFinderState, rawList: Place[]): Place[] =>
   state.listTab === "Saved"
-    ? rawList.filter((place) => state.savedPlaceIds.has(place.id))
+    ? state.savedPlaces.filter((place) => place.category === state.businessType)
     : rawList;
 
 /**
@@ -137,11 +129,11 @@ const visibleFor = (state: PlaceFinderState, rawList: Place[]): Place[] =>
  * that is missing. Saved narrows it the same way it narrows the list.
  */
 export const mapPinsFor = (
-  state: Pick<PlaceFinderState, "mapPlaces" | "allPlaces" | "listTab" | "savedPlaceIds">,
+  state: Pick<PlaceFinderState, "mapPlaces" | "allPlaces" | "listTab" | "savedPlaceIds" | "savedPlaces" | "businessType">,
 ): Place[] => {
   const pins = state.mapPlaces.length ? state.mapPlaces : state.allPlaces;
   return state.listTab === "Saved"
-    ? pins.filter((place) => state.savedPlaceIds.has(place.id))
+    ? state.savedPlaces.filter((place) => place.category === state.businessType)
     : pins;
 };
 
@@ -241,6 +233,7 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
   queryString: "",
   selectedPlaceId: null,
   savedPlaceIds: new Set<string>(),
+  savedPlaces: [],
 
   /**
    * Switch between the assistant and the manual filter panel.
@@ -386,8 +379,8 @@ export const usePlaceFinderStore = create<PlaceFinderState>((set, get) => ({
     set({ sortBy: sort });
     void get().fetchPlaces();
   },
-  setSavedPlaceIds: (placeIds) => {
-    set({ savedPlaceIds: new Set(placeIds) });
+  setSavedPlaces: (places) => {
+    set({ savedPlaces: places, savedPlaceIds: new Set(places.map((place) => place.id)) });
     if (get().listTab === "Saved") {
       set({ visiblePlaces: visibleFor(get(), get().allPlaces) });
     }
