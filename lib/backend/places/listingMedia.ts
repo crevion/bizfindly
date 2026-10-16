@@ -1,3 +1,4 @@
+import { gymsApi } from "@/lib/backend/gyms/api";
 import { restaurantsApi } from "@/lib/backend/restaurants";
 import { resortsApi } from "@/lib/backend/resorts";
 import type { ListingCategory } from "@/types/listing";
@@ -22,6 +23,7 @@ type MediaApi = {
 const MEDIA_APIS: Partial<Record<ListingCategory, MediaApi>> = {
   restaurant: restaurantsApi,
   resort: resortsApi,
+  gym: gymsApi,
 };
 
 /**

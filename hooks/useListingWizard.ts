@@ -82,9 +82,12 @@ export function useListingWizard() {
     setPublishError(null);
     try {
       let slug: string | undefined;
-      if (draft.category === "restaurant" || draft.category === "resort") {
+      if (draft.category === "restaurant" || draft.category === "resort" || draft.category === "gym") {
         const created = await createListingFromDraft(draft);
         slug = created?.slug;
+        if (!slug) {
+          throw new Error("The server did not return your listing. Please try again.");
+        }
         // Photos go up after the listing exists: the cover fills the single
         // cover_photo field and each gallery photo is its own upload.
         if (slug && (cover || gallery.length)) {
@@ -100,7 +103,7 @@ export function useListingWizard() {
           }
         }
       } else {
-        await new Promise((r) => setTimeout(r, 700));
+        throw new Error("Choose a business category before submitting your listing.");
       }
 
       const final = publishListing();
