@@ -75,7 +75,7 @@ function DashboardContent() {
     return (
       <div className="p-8" role="alert">
         {query.error.message}{" "}
-        <button onClick={() => void query.refetch()} className="underline">
+        <button onClick={() => void query.refetch()} className="cursor-pointer transition-colors enabled:hover:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed underline">
           Try again
         </button>
       </div>
@@ -97,7 +97,7 @@ function DashboardContent() {
   if (!listings.length) return <EmptyDashboard />;
   const active = listings.find((listing) => listing.id === activeId) ?? requestedBusiness ?? listings[0];
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-12">
+    <div className="site-container py-8 md:py-12">
       <DashboardHeader />
       <div className="mt-6 flex flex-wrap gap-2" aria-label="Your listings">
         {listings.map((listing) => (
@@ -105,7 +105,7 @@ function DashboardContent() {
             key={listing.id}
             onClick={() => setActiveId(listing.id)}
             aria-pressed={active.id === listing.id}
-            className={`rounded-full border px-4 py-2 text-sm font-semibold ${active.id === listing.id ? "bg-foreground text-background" : "bg-card border-border"}`}
+            className={`cursor-pointer transition-colors enabled:hover:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed rounded-full border px-4 py-2 text-sm font-semibold ${active.id === listing.id ? "bg-foreground text-background" : "bg-card border-border"}`}
           >
             {listing.name} · {listing.category}
           </button>
@@ -114,7 +114,7 @@ function DashboardContent() {
           <button
             disabled={query.isFetchingNextPage}
             onClick={() => void query.fetchNextPage()}
-            className="px-4 underline"
+            className="cursor-pointer transition-colors enabled:hover:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed px-4 underline"
           >
             {query.isFetchingNextPage ? "Loading…" : "More listings"}
           </button>

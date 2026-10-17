@@ -265,10 +265,10 @@ export default function ListBusinessPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-28 md:pb-16">
+    <div className="bg-background md:min-h-screen md:pb-16">
       {/* Header Banner & Stepper */}
       <section className="border-b border-border/80 bg-gradient-to-b from-card to-background py-8 md:py-10">
-        <div className="mx-auto max-w-7xl px-4 md:px-8">
+        <div className="site-container ">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="flex items-center gap-2">
@@ -321,7 +321,7 @@ export default function ListBusinessPage() {
                 className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground shadow-soft transition hover:bg-muted lg:hidden cursor-pointer"
               >
                 <Eye className="h-3.5 w-3.5" />
-                <span>Card Preview</span>
+                <span>Preview</span>
               </button>
             </div>
           </div>
@@ -362,7 +362,7 @@ export default function ListBusinessPage() {
       </section>
 
       {/* Main Grid Content */}
-      <main className="mx-auto max-w-7xl px-4 py-8 md:px-8">
+      <main className="site-container py-8">
         <div className="grid gap-10 lg:grid-cols-[1.3fr_0.9fr] lg:items-start">
           {/* Left Column: Interactive Form Sections */}
           <div className="space-y-8">
@@ -620,7 +620,7 @@ export default function ListBusinessPage() {
                   <button
                     type="button"
                     onClick={() => navigateToSection(LISTING_SECTION.hoursAndPricing)}
-                    className="inline-flex items-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-brand-foreground shadow-soft transition hover:shadow-card cursor-pointer"
+                    className="hidden items-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-brand-foreground shadow-soft transition hover:shadow-card cursor-pointer md:inline-flex"
                   >
                     Continue to Hours & Pricing <ArrowRight className="h-4 w-4" />
                   </button>
@@ -795,7 +795,7 @@ export default function ListBusinessPage() {
                   <button
                     type="button"
                     onClick={() => navigateToSection(LISTING_SECTION.photos)}
-                    className="inline-flex items-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-brand-foreground shadow-soft transition hover:shadow-card cursor-pointer"
+                    className="hidden items-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-brand-foreground shadow-soft transition hover:shadow-card cursor-pointer md:inline-flex"
                   >
                     Continue to Photos <ArrowRight className="h-4 w-4" />
                   </button>
@@ -830,7 +830,7 @@ export default function ListBusinessPage() {
                   <button
                     type="button"
                     onClick={() => navigateToSection(LISTING_SECTION.amenitiesAndStory)}
-                    className="inline-flex items-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-brand-foreground shadow-soft transition hover:shadow-card cursor-pointer"
+                    className="hidden items-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-brand-foreground shadow-soft transition hover:shadow-card cursor-pointer md:inline-flex"
                   >
                     Continue to Amenities <ArrowRight className="h-4 w-4" />
                   </button>
@@ -985,30 +985,30 @@ export default function ListBusinessPage() {
         </div>
       </main>
 
-      {/* Floating Bottom Bar for Quick Actions (Mobile & Desktop) */}
-      <aside className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 p-3 backdrop-blur-md md:hidden">
-        <div className="flex items-center justify-between gap-3">
+      {/* Mobile listing actions stay clear of the phone safe area. */}
+      <aside className="fixed inset-x-0 bottom-0 z-40 border-t border-border/70 bg-card/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.04)] backdrop-blur-md md:hidden">
+        <div className="mx-auto grid max-w-lg grid-cols-[auto_minmax(0,1fr)] items-stretch gap-3">
           <button
             type="button"
             onClick={() => setMobilePreviewOpen(true)}
-            className="flex items-center gap-1.5 rounded-xl border border-border bg-card px-4 py-2.5 text-xs font-semibold text-foreground shadow-soft"
+            className="flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-muted"
           >
-            <Eye className="h-4 w-4 text-brand" />
-            <span>Card Preview</span>
+            <Eye className="h-4 w-4 shrink-0 text-brand" />
+            <span>Preview</span>
           </button>
 
           <button
             type="button"
             onClick={activeSection === 3 ? handlePublish : () => navigateToSection(activeSection + 1)}
             disabled={activeSection === 3 && (!canPublish || publishState === "publishing")}
-            className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-brand py-2.5 text-xs font-bold text-brand-foreground shadow-soft"
+            className="inline-flex min-h-12 min-w-0 cursor-pointer items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-center text-sm font-semibold transition hover:brightness-95 text-brand-foreground shadow-soft disabled:cursor-not-allowed disabled:opacity-50"
           >
             {activeSection === 3
               ? publishState === "publishing"
                 ? "Publishing..."
                 : "Publish Listing"
-              : `Next: ${SECTIONS[activeSection + 1]?.label || "Next"}`}
-            <ArrowRight className="h-3.5 w-3.5" />
+              : "Continue"}
+            <ArrowRight className="h-3.5 w-3.5 shrink-0" />
           </button>
         </div>
       </aside>

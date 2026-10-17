@@ -48,7 +48,7 @@ export function HomeFeed({ queries }: { queries: FeedQuery[] }) {
   ].filter((row) => row.length > 0);
 
   return (
-    <section className="mx-auto max-w-7xl overflow-hidden px-4 py-12 md:px-8 md:py-16">
+    <section className="site-container overflow-hidden py-12 md:py-16">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
           <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">

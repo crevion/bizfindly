@@ -43,7 +43,7 @@ export function HeroSection({ images }: { images: string[] }) {
 
   return (
     <section className="relative overflow-hidden">
-      <div className="mx-auto grid max-w-7xl gap-12 px-4 pt-16 pb-16 md:grid-cols-[1.05fr_0.95fr] md:items-center md:gap-20 md:px-8 md:pt-24 md:pb-24">
+      <div className="site-container grid gap-12 pt-16 pb-16 md:grid-cols-[1.05fr_0.95fr] md:items-center md:gap-20 md:pt-24 md:pb-24">
         <div>
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground">
             <Sparkles className="h-3.5 w-3.5 text-brand" />
@@ -66,11 +66,11 @@ export function HeroSection({ images }: { images: string[] }) {
             </Link>
             <Link
               href="/list-business"
-              className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-semibold text-foreground transition hover:text-brand"
+              className="group inline-flex min-h-12 cursor-pointer items-center justify-center gap-2.5 rounded-xl border border-brand/25 bg-card px-6 py-3.5 text-sm font-semibold text-brand shadow-soft transition duration-200 hover:-translate-y-0.5 hover:border-brand hover:bg-brand/5 hover:shadow-card focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
             >
               <Store className="h-4 w-4" />
               List Your Business
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
             </Link>
           </div>
         </div>

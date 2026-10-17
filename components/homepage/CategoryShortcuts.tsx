@@ -26,7 +26,7 @@ export function CategoryShortcuts() {
   ];
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-16">
+    <section className="site-container py-12 md:py-16">
       <div className="mb-8">
         <h2 className="font-display text-2xl font-bold md:text-3xl">Explore by category</h2>
         <p className="text-muted-foreground mt-2">Browse restaurants, resorts and gyms across Bangladesh</p>

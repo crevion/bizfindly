@@ -65,7 +65,7 @@ export default function ProfilePage() {
             </Link>
             <button
               onClick={signOut}
-              className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-4 py-2.5 text-sm font-semibold backdrop-blur"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-white/20 px-4 py-2.5 text-sm font-semibold backdrop-blur"
             >
               <LogOut className="h-4 w-4" /> Sign out
             </button>

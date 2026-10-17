@@ -20,6 +20,7 @@ import {
   List,
 } from "lucide-react";
 import { businessTypeConfig } from "@/components/ai-finder/businessTypes";
+import { BusinessTypeSelect } from "@/components/ai-finder/BusinessTypeSelect";
 import { ScrollArea } from "@/components/common/ScrollArea";
 import { useSyncSavedPlaces } from "@/components/ai-finder/useSyncSavedPlaces";
 
@@ -82,10 +83,13 @@ function AiFinderInner() {
 
   return (
     <div className="discover-page bg-background min-h-screen">
-      <div className="mx-auto grid max-w-[1600px] items-start gap-5 px-4 py-5 lg:grid-cols-[346px_minmax(0,1fr)] lg:gap-8 lg:px-6">
+      <div className="site-container grid items-start gap-5 py-5 lg:grid-cols-[346px_minmax(0,1fr)] lg:gap-8">
         <aside className="min-w-0 lg:sticky lg:top-[96px]">
           <ScrollArea type="auto" className="lg:h-[calc(100dvh-112px)] lg:pr-3">
             <div className="space-y-4 pb-4">
+              <div className="lg:hidden">
+                <BusinessTypeSelect />
+              </div>
               <div className="shadow-soft flex rounded-full border bg-white p-1">
                 {[
                   { ai: true, label: "AI Search", icon: Sparkles },
@@ -308,7 +312,7 @@ function AiFinderInner() {
 
 export default function AiSearchPage() {
   return (
-    <Suspense fallback={<div className="mx-auto max-w-[1240px] p-6" />}>
+    <Suspense fallback={<div className="site-container p-6" />}>
       <AiFinderInner />
     </Suspense>
   );

@@ -1,3 +1,4 @@
+import { gymsApi } from "@/lib/backend/gyms/api";
 import { restaurantsApi } from "@/lib/backend/restaurants";
 import { resortsApi } from "@/lib/backend/resorts";
 import { loadTaxonomy } from "@/lib/backend/taxonomy/useTaxonomy";
@@ -78,5 +79,28 @@ export async function createListingFromDraft(draft: ListingDraft): Promise<Creat
     return { slug: created.slug };
   }
 
-  return null;
+  if (draft.category === "gym") {
+    const business_type = await resolveBusinessTypeId("gym");
+    const created = await gymsApi.create({
+      name: draft.name.trim(),
+      city: clean(draft.area) ?? draft.location.trim(),
+      area: clean(draft.area),
+      address: clean(draft.location),
+      google_map_url: clean(draft.mapUrl),
+      latitude: clean(draft.latitude),
+      longitude: clean(draft.longitude),
+      phone: clean(draft.phone),
+      website: clean(draft.website),
+      opening_hours: clean(draft.hours),
+      description: clean(draft.description),
+      price_min: clean(draft.priceMin),
+      price_max: clean(draft.priceMax),
+      business_type,
+      tags: draft.tagIds,
+      facilities: draft.facilityIds,
+    });
+    return { slug: created.slug };
+  }
+
+  throw new Error("Choose a business category before submitting your listing.");
 }

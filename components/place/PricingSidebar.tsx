@@ -24,7 +24,7 @@ export function PricingSidebar({ place }: { place: Place }) {
             href={mapLinkUrl(place)}
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:underline"
+            className="min-w-0 break-words hover:underline"
           >
             {place.location}
           </a>
@@ -36,7 +36,7 @@ export function PricingSidebar({ place }: { place: Place }) {
         {place.website && (
           <div className="flex items-start gap-3">
             <Globe className="text-muted-foreground mt-0.5 h-4 w-4" />
-            <span>{place.website}</span>
+            <span className="min-w-0 break-all">{place.website}</span>
           </div>
         )}
         <div className="flex items-start gap-3">
@@ -47,7 +47,7 @@ export function PricingSidebar({ place }: { place: Place }) {
         </div>
       </div>
 
-      <button className="gradient-brand text-brand-foreground shadow-glow mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold">
+      <button className="gradient-brand text-brand-foreground shadow-glow cursor-pointer transition hover:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold">
         Reserve / Contact
       </button>
 
@@ -56,7 +56,7 @@ export function PricingSidebar({ place }: { place: Place }) {
           href={directionsUrl(place)}
           target="_blank"
           rel="noopener noreferrer"
-          className="border-border bg-surface inline-flex items-center justify-center rounded-full border px-4 py-2.5 text-sm font-semibold"
+          className="border-border bg-surface cursor-pointer transition-colors hover:bg-muted hover:border-brand/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand inline-flex items-center justify-center rounded-full border px-4 py-2.5 text-sm font-semibold"
         >
           Directions
         </a>

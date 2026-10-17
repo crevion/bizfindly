@@ -32,7 +32,7 @@ import { OpeningHoursFields, listingFormData } from "./OpeningHoursFields";
 
 const inputClass = "border-border bg-background mt-1 w-full rounded-xl border px-3 py-2 text-sm";
 const buttonClass =
-  "bg-foreground text-background rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-50";
+  "bg-foreground text-background cursor-pointer rounded-full px-4 py-2 text-sm font-semibold transition-colors enabled:hover:bg-foreground/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-50";
 type Panel = "details" | "photos" | "offer" | "promotion" | "menu" | null;
 
 export function DashboardListingPanel({
@@ -104,7 +104,7 @@ export function DashboardListingPanel({
     return (
       <p className="py-8" role="alert">
         {detail.error.message}{" "}
-        <button className="underline" onClick={() => void detail.refetch()}>
+        <button className="cursor-pointer transition-colors enabled:hover:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed underline" onClick={() => void detail.refetch()}>
           Try again
         </button>
       </p>
@@ -113,7 +113,7 @@ export function DashboardListingPanel({
   const pending = mutation.isPending;
   const maxSaves = Math.max(1, ...data.saves_week.map((day) => day.count));
   return (
-    <div className="mt-6 grid gap-6 lg:grid-cols-[2fr_1fr]">
+    <div className="mt-6 grid min-w-0 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
       <div className="min-w-0 space-y-6">
         <div className="border-border bg-card overflow-hidden rounded-3xl border">
           <div className="bg-muted relative h-48">
@@ -190,7 +190,7 @@ export function DashboardListingPanel({
               }
             >
               <div className="mb-4 text-right">
-                <button onClick={() => setPanel(null)} className="text-sm underline">
+                <button onClick={() => setPanel(null)} className="cursor-pointer transition-colors enabled:hover:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed text-sm underline">
                   Close
                 </button>
               </div>
@@ -354,7 +354,7 @@ export function DashboardListingPanel({
                       {data.cover_photo && (
                         <button
                           type="button"
-                          className="ml-3 text-sm underline"
+                          className="cursor-pointer transition-colors enabled:hover:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed ml-3 text-sm underline"
                           onClick={() => {
                             if (window.confirm("Remove the cover photo?"))
                               void run("cover/", "DELETE");
@@ -394,7 +394,7 @@ export function DashboardListingPanel({
                   {photos.isError && (
                     <p role="alert">
                       {photos.error.message}{" "}
-                      <button className="underline" onClick={() => void photos.refetch()}>
+                      <button className="cursor-pointer transition-colors enabled:hover:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed underline" onClick={() => void photos.refetch()}>
                         Try again
                       </button>
                     </p>
@@ -417,7 +417,7 @@ export function DashboardListingPanel({
                             <p className="text-sm">{photo.caption}</p>
                             <button
                               disabled={pending}
-                              className="text-sm text-red-600 underline disabled:opacity-50"
+                              className="cursor-pointer transition-colors enabled:hover:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed text-sm text-red-600 underline disabled:opacity-50"
                               onClick={() => {
                                 if (window.confirm("Remove this gallery photo?"))
                                   void run(`gallery/${photo.id}/`, "DELETE");
@@ -433,7 +433,7 @@ export function DashboardListingPanel({
                     <button
                       disabled={photos.isFetchingNextPage}
                       onClick={() => void photos.fetchNextPage()}
-                      className="underline"
+                      className="cursor-pointer transition-colors enabled:hover:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed underline"
                     >
                       More photos
                     </button>
@@ -480,7 +480,7 @@ export function DashboardListingPanel({
             {reviews.isError && (
               <p role="alert">
                 {reviews.error.message}{" "}
-                <button className="underline" onClick={() => void reviews.refetch()}>
+                <button className="cursor-pointer transition-colors enabled:hover:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed underline" onClick={() => void reviews.refetch()}>
                   Try again
                 </button>
               </p>
@@ -504,7 +504,7 @@ export function DashboardListingPanel({
             </div>
             {reviews.hasNextPage && (
               <button
-                className="mt-4 underline"
+                className="cursor-pointer transition-colors enabled:hover:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed mt-4 underline"
                 disabled={reviews.isFetchingNextPage}
                 onClick={() => void reviews.fetchNextPage()}
               >
@@ -537,7 +537,7 @@ export function DashboardListingPanel({
               <button
                 key={label}
                 onClick={action}
-                className="border-border bg-surface hover:border-foreground/30 flex w-full items-center gap-3 rounded-2xl border p-3 text-left text-sm font-semibold"
+                className="cursor-pointer transition-colors enabled:hover:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed border-border bg-surface hover:border-foreground/30 enabled:hover:bg-muted flex w-full items-center gap-3 rounded-2xl border p-3 text-left text-sm font-semibold"
               >
                 <Icon className="h-4 w-4" />
                 {label}
@@ -559,7 +559,7 @@ export function DashboardListingPanel({
                   if (window.confirm("Remove this offer from your listing?"))
                     void run("", "PATCH", { offer_code: "", offer_description: "" });
                 }}
-                className="ml-3 text-sm underline"
+                className="cursor-pointer transition-colors enabled:hover:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed ml-3 text-sm underline"
               >
                 Remove
               </button>
@@ -590,7 +590,7 @@ export function DashboardListingPanel({
               )
                 void run("", "DELETE");
             }}
-            className="mt-3 rounded-full border border-red-600/30 bg-red-600/10 px-4 py-2 text-sm font-semibold text-red-600 disabled:opacity-50"
+            className="cursor-pointer transition-colors enabled:hover:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed mt-3 rounded-full border border-red-600/30 bg-red-600/10 enabled:hover:bg-red-600/20 px-4 py-2 text-sm font-semibold text-red-600 disabled:opacity-50"
           >
             Delete listing
           </button>

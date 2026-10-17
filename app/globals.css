@@ -613,3 +613,24 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Shared page width and gutters keep the header, sections, and footer aligned. */
+@utility site-container {
+  width: 100%;
+  max-width: 1600px;
+  margin-inline: auto;
+  padding-inline: 16px;
+
+  @media (min-width: 1024px) {
+    padding-inline: 24px;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Prevent iOS from zooming the page when a form control receives focus. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}

@@ -48,9 +48,9 @@ export function PlaceDetail({ slug }: { slug: string }) {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-12 md:px-8">
+      <div className="site-container py-12">
         <div className="bg-card h-72 w-full animate-pulse rounded-3xl" />
-        <div className="mt-8 grid gap-10 lg:grid-cols-[1.7fr_1fr]">
+        <div className="mt-8 grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
           <div className="space-y-4">
             <div className="bg-card h-10 w-2/3 animate-pulse rounded-2xl" />
             <div className="bg-card h-32 w-full animate-pulse rounded-2xl" />
@@ -86,9 +86,9 @@ export function PlaceDetail({ slug }: { slug: string }) {
         onOpenAt={lightbox.open}
       />
 
-      <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-12">
-        <div className="grid gap-10 lg:grid-cols-[1.7fr_1fr]">
-          <div>
+      <div className="site-container py-8 md:py-12">
+        <div className="grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
+          <div className="min-w-0">
             <PlaceTitle place={place} verificationStatus={status} />
             <OwnerStatusBanner status={status} place={place} />
             {place.aiSummary && <AiSummary summary={place.aiSummary} />}
@@ -99,7 +99,7 @@ export function PlaceDetail({ slug }: { slug: string }) {
             <PlaceReviews key={`${place.category}:${place.slug}`} place={place} />
           </div>
 
-          <aside className="lg:sticky lg:top-24 lg:self-start">
+          <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
             <PricingSidebar place={place} />
             <CouponCard key={`${place.slug}:${place.offerCode ?? ""}`} place={place} />
           </aside>

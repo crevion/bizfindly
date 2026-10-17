@@ -146,7 +146,7 @@ export default function AboutPage() {
     <div className="min-h-screen bg-background text-foreground">
       {/* 1. Hero Section with Rich Bento Photo Gallery */}
       <section className="relative overflow-hidden border-b border-border/80 bg-gradient-to-b from-card via-background to-background py-12 md:py-20">
-        <div className="mx-auto max-w-7xl px-4 md:px-8">
+        <div className="site-container ">
           <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             {/* Left Narrative */}
             <div>
@@ -202,7 +202,7 @@ export default function AboutPage() {
             {/* Right: Rich Bento Image Grid */}
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {/* Tile 1: Tall Dining Hero */}
-              <div className="group relative row-span-2 overflow-hidden rounded-3xl border border-border shadow-soft">
+              <Link href="/ai-discover?category=restaurant" aria-label="Explore dining and cafés" className="group relative row-span-2 overflow-hidden rounded-3xl border border-border shadow-soft">
                 <img
                   src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80"
                   alt="Rooftop Dining"
@@ -221,10 +221,10 @@ export default function AboutPage() {
                   <h3 className="font-display text-lg font-bold">Rooftops & Fine Dining</h3>
                   <p className="mt-0.5 text-xs opacity-80">Dhaka, Chittagong & Sylhet</p>
                 </div>
-              </div>
+              </Link>
 
               {/* Tile 2: Resort Tile */}
-              <div className="group relative overflow-hidden rounded-3xl border border-border shadow-soft h-[185px]">
+              <Link href="/ai-discover?category=resort" aria-label="Explore resorts and getaways" className="group relative overflow-hidden rounded-3xl border border-border shadow-soft h-[185px]">
                 <img
                   src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80"
                   alt="Luxury Resort"
@@ -237,10 +237,10 @@ export default function AboutPage() {
                   </div>
                   <div className="font-display text-sm font-bold">Resorts & Villas</div>
                 </div>
-              </div>
+              </Link>
 
               {/* Tile 3: Gym & Fitness Tile */}
-              <div className="group relative overflow-hidden rounded-3xl border border-border shadow-soft h-[185px]">
+              <Link href="/ai-discover?category=gym" aria-label="Explore gyms and fitness" className="group relative overflow-hidden rounded-3xl border border-border shadow-soft h-[185px]">
                 <img
                   src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80"
                   alt="Fitness Gym"
@@ -253,14 +253,14 @@ export default function AboutPage() {
                   </div>
                   <div className="font-display text-sm font-bold">Gyms & Studios</div>
                 </div>
-              </div>
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
       {/* 2. Photo-Backed Stat Cards */}
-      <section className="mx-auto max-w-7xl px-4 py-16 md:px-8">
+      <section className="site-container py-16">
         <div className="mb-10 text-center max-w-2xl mx-auto">
           <span className="text-xs font-bold uppercase tracking-wider text-brand">
             Our Nationwide Reach
@@ -306,7 +306,7 @@ export default function AboutPage() {
 
       {/* 3. Three Large Visual Showcase Cards */}
       <section className="surface-warm border-y border-border py-16 md:py-24">
-        <div className="mx-auto max-w-7xl px-4 md:px-8">
+        <div className="site-container ">
           <div className="mb-12 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-brand">
@@ -367,7 +367,7 @@ export default function AboutPage() {
       </section>
 
       {/* 4. How the AI Recommendation Engine Works */}
-      <section className="mx-auto max-w-7xl px-4 py-16 md:py-24">
+      <section className="site-container py-16 md:py-24">
         <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-brand">
@@ -483,7 +483,7 @@ export default function AboutPage() {
 
       {/* 5. Core Values & Principles */}
       <section className="surface-warm border-y border-border py-16 md:py-24">
-        <div className="mx-auto max-w-7xl px-4 md:px-8">
+        <div className="site-container ">
           <div className="mx-auto max-w-2xl text-center">
             <span className="text-xs font-bold uppercase tracking-wider text-brand">
               Our Principles
@@ -519,7 +519,7 @@ export default function AboutPage() {
       </section>
 
       {/* 6. Community Voices & Testimonials */}
-      <section className="mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-24">
+      <section className="site-container py-16 md:py-24">
         <div className="mb-12 text-center max-w-2xl mx-auto">
           <span className="text-xs font-bold uppercase tracking-wider text-brand">
             Community Love
@@ -565,7 +565,7 @@ export default function AboutPage() {
       </section>
 
       {/* 7. High-Impact Closing CTA Banner */}
-      <section className="mx-auto max-w-7xl px-4 md:px-8 md:pb-24">
+      <section className="site-container md:pb-24">
         <div className="relative overflow-hidden rounded-3xl bg-foreground p-8 text-background md:p-16">
           <div className="absolute inset-0 opacity-15">
             <img

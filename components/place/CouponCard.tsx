@@ -61,7 +61,7 @@ export function CouponCard({
             </div>
             <button
               onClick={copyCoupon}
-              className="bg-foreground text-background inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold transition hover:opacity-90"
+              className="bg-foreground text-background cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold transition hover:opacity-90"
             >
               <Copy className="h-3.5 w-3.5" />
               <span aria-live="polite">{copied ? "Copied" : "Copy"}</span>
@@ -71,7 +71,7 @@ export function CouponCard({
           <button
             disabled={!hydrated}
             onClick={() => router.push(`/join?next=${encodeURIComponent(`/place/${place.slug}`)}`)}
-            className="group border-border bg-card hover:border-foreground/30 mt-4 flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left transition disabled:opacity-50"
+            className="group border-border bg-card cursor-pointer enabled:hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed hover:border-foreground/30 mt-4 flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left transition disabled:opacity-50"
           >
             <div>
               <p className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase">

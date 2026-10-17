@@ -3,7 +3,7 @@ import { ArrowRight, MapPin, Sparkles } from "lucide-react";
 
 export function HomeCtaStrip() {
   return (
-    <section className="mx-auto max-w-7xl px-4 pb-16 md:px-8">
+    <section className="site-container pb-16">
       <div className="grid gap-4 md:grid-cols-2">
         <div className="relative overflow-hidden rounded-3xl bg-brand p-8 text-brand-foreground shadow-card md:p-10">
           <Sparkles className="mb-4 h-8 w-8" />

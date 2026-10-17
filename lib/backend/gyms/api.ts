@@ -1,3 +1,4 @@
+import { authHeader } from "@/lib/backend/auth/tokens";
 import { formatOpeningHours } from "@/lib/backend/places/hours";
 import { toCoords } from "@/lib/backend/places/map";
 import { apiClient, buildQuery, type NamedSlug, type Paginated } from "@/lib/backend/api";
@@ -42,7 +43,36 @@ export interface GymDetail extends GymListItem {
   offer_description: string;
 }
 
+export interface GymInput {
+  name: string;
+  city: string;
+  area?: string;
+  address?: string;
+  google_map_url?: string;
+  latitude?: string;
+  longitude?: string;
+  phone?: string;
+  website?: string;
+  opening_hours?: string;
+  description?: string;
+  price_min?: string;
+  price_max?: string;
+  business_type?: number;
+  tags?: number[];
+  facilities?: number[];
+}
+
 export const gymsApi = {
+  create: (body: GymInput) =>
+    apiClient<GymDetail>("/owner/gyms/", { method: "POST", body, headers: authHeader() }),
+  uploadCoverPhoto: (slug: string, body: FormData) =>
+    apiClient(`/owner/gyms/${encodeURIComponent(slug)}/cover-photo/`, {
+      method: "POST", body, headers: authHeader(),
+    }),
+  uploadGalleryImage: (slug: string, body: FormData) =>
+    apiClient(`/owner/gyms/${encodeURIComponent(slug)}/gallery/`, {
+      method: "POST", body, headers: authHeader(),
+    }),
   list: (params: { page_size?: number; search?: string } = {}) =>
     apiClient<Paginated<GymListItem>>(`/gyms/${buildQuery(params)}`),
   detail: (slug: string) => apiClient<GymDetail>(`/gyms/${slug}/`),

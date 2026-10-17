@@ -13,7 +13,7 @@ export function HomeSection({
   cta?: { label: string; to: string };
 }) {
   return (
-    <section className="mx-auto max-w-7xl px-4 py-10 md:px-8 md:py-14">
+    <section className="site-container py-10 md:py-14">
       <div className="mb-6 flex items-end justify-between gap-4">
         <div>
           <h2 className="font-display text-2xl font-bold tracking-tight md:text-3xl">{title}</h2>

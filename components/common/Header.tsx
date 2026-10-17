@@ -14,16 +14,14 @@ export function Header() {
   const user = useAuthStore((s) => s.user);
 
   return (
-    <header className={cn("sticky top-0 z-40", isDiscover && "bg-background px-4 py-2 lg:px-6")}>
+    <header className={cn("site-container sticky top-0 z-40 py-2", isDiscover && "bg-background")}>
       {!isDiscover && (
         <div className="from-background/90 pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b to-transparent" />
       )}
       <div
         className={cn(
           "border-border/70 bg-background/80 shadow-soft relative flex h-16 items-center justify-between gap-3 rounded-2xl border px-3 backdrop-blur-xl md:gap-4 md:px-4",
-          isDiscover
-            ? "mx-auto w-full max-w-[1552px]"
-            : "mx-auto mt-2 max-w-7xl md:mx-4 lg:mx-auto",
+          "w-full",
         )}
       >
         <Link href="/" className="flex shrink-0 items-center gap-2 transition hover:opacity-90">

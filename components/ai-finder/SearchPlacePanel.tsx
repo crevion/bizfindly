@@ -72,7 +72,7 @@ export function SearchPlacePanel() {
   if (openAI) {
     return (
       <div className="border-border shadow-soft overflow-hidden rounded-3xl border bg-white">
-        <div className="border-border flex items-center justify-between border-b p-4 sm:p-5">
+        <div className="border-border flex flex-wrap items-center justify-between gap-3 border-b p-4 sm:p-5">
           <div className="flex items-center gap-2">
             <span className="bg-brand text-brand-foreground shadow-soft flex h-8 w-8 items-center justify-center rounded-lg">
               <Sparkles size={16} />
